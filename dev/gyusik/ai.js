@@ -30,6 +30,20 @@ export const LEVELS = [
 ];
 
 const SETTINGS_KEY = "gyusik.ai", KEY_KEY = "gyusik.ai.key";
+
+// Inside the installed (Electron) app the preload script provides window.gyusikHost: the administrator
+// policy, and key storage encrypted with the Windows credential store. In a browser both are absent.
+const host = typeof window !== "undefined" ? window.gyusikHost : null;
+export const policy = (host && host.info && host.info.policy) || {blockExternal: false, allowedHosts: null};
+export const hasSecureKeyStore = !!(host && host.getKey);
+/** Installed app: tell it which single AI server may be contacted (everything else stays blocked). */
+export function registerHost(s) {
+	if (!host || !host.allowHost) { return; }
+	let h = "";
+	try { h = new URL(s.base).host; } catch (e) {}
+	host.allowHost(h);
+}
+export const getStoredKey = () => (hasSecureKeyStore ? host.getKey() : Promise.resolve(""));
 const DEFAULTS = {provider: "claude", protocol: "anthropic", base: "https://api.anthropic.com", model: "claude-sonnet-5-5", effort: "", saveKey: false, block: false};
 let sessionKey = "";
 
@@ -38,8 +52,9 @@ export function loadSettings() {
 	try { s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || "{}") || {}; } catch (e) {}
 	s = Object.assign({}, DEFAULTS, s);
 	let key = sessionKey;
-	try { key = key || localStorage.getItem(KEY_KEY) || ""; } catch (e) {}
+	if (!hasSecureKeyStore) { try { key = key || localStorage.getItem(KEY_KEY) || ""; } catch (e) {} }
 	s.key = key;
+	if (policy.blockExternal) { s.block = true; } // the administrator's switch cannot be turned off by the user
 	return s;
 }
 
@@ -47,9 +62,11 @@ export function saveSettings(s) {
 	let copy = Object.assign({}, s);
 	delete copy.key;
 	sessionKey = s.key || "";
+	registerHost(s);
 	try {
 		localStorage.setItem(SETTINGS_KEY, JSON.stringify(copy));
-		if (s.saveKey && s.key) { localStorage.setItem(KEY_KEY, s.key); } else { localStorage.removeItem(KEY_KEY); }
+		if (hasSecureKeyStore) { host.setKey(s.saveKey ? s.key : ""); localStorage.removeItem(KEY_KEY); }
+		else if (s.saveKey && s.key) { localStorage.setItem(KEY_KEY, s.key); } else { localStorage.removeItem(KEY_KEY); }
 	} catch (e) {}
 }
 
@@ -57,7 +74,11 @@ export function levelsFor(protocol) { return LEVELS.filter((l) => l.protocols.in
 
 /** Why the AI can't be used right now, or "" when it can. */
 export function unavailableReason(s) {
-	if (s.block) { return "관리자 설정으로 외부 통신이 꺼져 있습니다."; }
+	if (s.block || policy.blockExternal) { return policy.blockExternal ? "관리자 정책으로 외부 통신이 꺼져 있습니다." : "관리자 설정으로 외부 통신이 꺼져 있습니다."; }
+	if (Array.isArray(policy.allowedHosts)) {
+		let h = ""; try { h = new URL(s.base).host.toLowerCase(); } catch (e) {}
+		if (!policy.allowedHosts.includes(h)) { return "관리자 정책이 허용하지 않은 서버입니다. 허용된 서버: " + (policy.allowedHosts.join(", ") || "없음"); }
+	}
 	if (typeof navigator !== "undefined" && navigator.onLine === false) { return "인터넷에 연결되지 않았습니다."; }
 	if (!s.base) { return "설정에서 AI 서버 주소를 입력하세요."; }
 	if (!s.model) { return "설정에서 모델을 고르세요."; }

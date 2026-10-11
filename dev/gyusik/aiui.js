@@ -7,7 +7,7 @@ The AI answer is never trusted: it is compiled, scored against the user's exampl
 and run through the same diagnostics as any other pattern before it is shown.
 */
 
-import {PROVIDERS, levelsFor, loadSettings, saveSettings, unavailableReason, listModels, askForRegex, AiError} from "./ai.js";
+import {PROVIDERS, levelsFor, loadSettings, saveSettings, unavailableReason, listModels, askForRegex, AiError, policy, hasSecureKeyStore, getStoredKey, registerHost} from "./ai.js";
 import {analyze, summary} from "./model.js";
 import {diagnose} from "./diagnose.js";
 
@@ -38,6 +38,7 @@ export function initAi(ctx) {
 		$("setSaveKey").checked = !!s.saveKey;
 		$("setModel").value = s.model;
 		$("setBlock").checked = !!s.block;
+		$("setBlock").disabled = !!policy.blockExternal; // set by the administrator policy, not changeable here
 		["setProvider", "setProtocol", "setBase", "setKey", "setSaveKey", "setModel", "setEffort", "setCheck"].forEach((id) => { $(id).disabled = !!s.block || (id === "setProtocol" && !p.custom); });
 		fillEffort();
 		$("setKey").placeholder = p.keyOptional ? "(없어도 됩니다)" : "";
@@ -142,6 +143,13 @@ export function initAi(ctx) {
 	window.addEventListener("online", paintNl);
 	window.addEventListener("offline", paintNl);
 
+	if (hasSecureKeyStore) {
+		// installed app: the key is kept encrypted by Windows, not in the browser storage
+		$("setSaveKey").parentElement.querySelector(".hint").textContent = "Windows 사용자 계정에 암호화되어 저장됩니다. 끄면 앱을 닫을 때까지만 기억합니다.";
+		getStoredKey().then((k) => { if (k && !s.key) { s.key = k; s.saveKey = true; paintSettings(); paintNl(); } });
+	}
+	if (policy.blockExternal) { $("setBlock").parentElement.querySelector(".hint").textContent = "관리자 정책(" + (window.gyusikHost.info.policy.source || "policy.json") + ")으로 켜져 있어 바꿀 수 없습니다."; }
+	registerHost(s);
 	paintSettings();
 	paintNl();
 	return {refresh: paintNl, settings: () => s};

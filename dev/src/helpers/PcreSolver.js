@@ -107,7 +107,7 @@ export default class PcreSolver {
 			time: error ? null : Utils.now()-this._startTime,
 			error,
 			mode: req.mode,
-			matches
+			matches: matches || [] // a failed run (load error, timeout) has no matches; callers iterate this
 		};
 
 		let tool = req.tool;
