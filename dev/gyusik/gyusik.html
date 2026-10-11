@@ -15,8 +15,8 @@
 <header class="top">
 	<span class="logo">규식이</span>
 	<nav class="modes" aria-label="모드">
-		<button class="mode on" type="button">작업대</button>
-		<button class="mode" type="button" disabled title="준비 중">만들기</button>
+		<button class="mode on" type="button" data-mode="bench">작업대</button>
+		<button class="mode" type="button" data-mode="make">만들기</button>
 		<button class="mode" type="button" disabled title="준비 중">배우기</button>
 		<button class="mode" type="button" disabled title="준비 중">내 패턴</button>
 	</nav>
@@ -81,6 +81,21 @@
 	</aside>
 </main>
 
+<main class="mk" id="makeView" hidden>
+	<section class="pane">
+		<div class="label">예시로 만들기 <span class="hint">맞아야 할 문자열과 틀려야 할 문자열을 한 줄에 하나씩 적으세요. 붙여넣기도 됩니다.</span></div>
+		<label class="fld" for="mkPos">일치해야 할 예시</label>
+		<textarea id="mkPos" class="lines" spellcheck="false" rows="6" placeholder="2026-10-11&#10;2025-01-31"></textarea>
+		<label class="fld" for="mkNeg">일치하면 안 될 예시</label>
+		<textarea id="mkNeg" class="lines" spellcheck="false" rows="6" placeholder="2026-13-01&#10;26-10-11"></textarea>
+		<div><button type="button" class="primary" id="mkGo">후보 만들기</button></div>
+		<p class="hint">이 예시는 작업대의 테스트 케이스와 같은 데이터입니다. 후보를 작업대로 보내면 예시도 함께 갑니다.</p>
+	</section>
+	<section class="pane">
+		<div class="label" id="mkCount">후보</div>
+		<div id="mkList"><p class="empty">예시를 넣고 [후보 만들기]를 누르면 후보가 나옵니다.</p></div>
+	</section>
+</main>
 <footer class="statusbar" id="statusbar"></footer>
 <script src="gyusik.js"></script>
 </body>

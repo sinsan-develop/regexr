@@ -165,3 +165,24 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .tcase .del { border: 0; background: none; color: var(--ink-2); padding: 0 6px; font-size: 16px; }
 .add { align-self: flex-start; border: 1.5px dashed var(--ink-2); border-radius: 6px; background: none; padding: 2px 12px; color: var(--ink-2); }
 .add:hover { border-color: var(--accent); color: var(--accent); }
+
+/* make-from-examples view */
+.mode:not(:disabled):hover:not(.on) { background: var(--code-bg); }
+.mk { flex: 1 0 auto; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr); gap: 12px; padding: 12px 16px; align-items: start; }
+.mk[hidden], .wb[hidden] { display: none; }
+.fld { font-size: 12.5px; color: var(--ink-2); font-weight: 600; }
+.lines { font: 14px/1.5 var(--f-mono); border: 1.5px solid var(--line); border-radius: 8px; background: var(--board); color: var(--ink); padding: 8px 10px; width: 100%; resize: vertical; }
+.lines:focus { border-color: var(--accent); outline: 0; }
+.primary { border: 0; border-radius: 6px; background: var(--accent); color: var(--on-accent); padding: 4px 16px; font-weight: 600; }
+.cand { border: 1.5px solid var(--line); border-radius: 8px; padding: 10px 12px; display: grid; gap: 6px; margin-bottom: 8px; }
+.cand.best { border-color: var(--ok); }
+.cand .hd { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.cand pre { margin: 0; font: 13px var(--f-mono); background: var(--code-bg); border-radius: 5px; padding: 6px 9px; overflow-x: auto; }
+.cand p { margin: 0; }
+.cand .ft { display: flex; gap: 10px; align-items: center; justify-content: space-between; flex-wrap: wrap; }
+.cand .ok { color: var(--ok); } .cand .bad { color: var(--bad); }
+.cand .src { color: var(--ink-2); font-size: 12.5px; }
+.cand .send { border: 1.5px solid var(--ink-2); border-radius: 6px; background: var(--paper); padding: 1px 10px; }
+.cand .send:hover { border-color: var(--accent); background: var(--accent-soft); }
+.cand .limit { background: var(--code-bg); border-radius: 6px; padding: 5px 9px; font-size: 13px; }
+@media (max-width: 900px) { .mk { grid-template-columns: minmax(0, 1fr); } }
