@@ -43,3 +43,4 @@ modified version and is not affiliated with or endorsed by gskinner.com, inc.
 - 도움말의 엔진 설명과 소개 문구를 PCRE2 브라우저 실행에 맞게 고쳤습니다.
 - 설계안 화면 1(작업대)을 새로 만들었습니다(`dev/gyusik/`, 빌드 결과는 `gyusik.html`). RegExr의 화면 코드는 쓰지 않고, 어휘 분석기(`ExpressionLexer`)와 프로필, PCRE2 실행기(`PcreSolver`)만 재사용합니다. 패턴 구조 분석과 한국어 풀이(`model.js`), 선로도(`railroad.js`), 진단·추천 규칙(`diagnose.js`), JS 실행기(`JsSolver.js`)는 새로 작성했습니다.
 - 설정 > AI와 한국어 문장으로 정규식 만들기(온라인 전용)를 추가했습니다(`ai.js`, `aiui.js`). OpenAI 호환과 Anthropic 호환 두 방식, 제공자 8종 프리셋, 모델 목록 조회, 추론 등급 선택을 지원합니다. AI 답은 기기에서 컴파일·예시 검증·진단을 거친 뒤에만 보여줍니다.
+- 배우기(화면 4) 1~6강을 추가했습니다(`lessons.js`, `learn.js`). 한국어로 새로 쓴 강의 6개와 실습 16문제이며, 쉬운 말을 먼저 쓰고 용어는 괄호에 넣었습니다. 실습은 입력할 때마다 기기에서 채점하고 진행 상황은 기기에 저장합니다.
