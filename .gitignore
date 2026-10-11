@@ -37,3 +37,6 @@ server/cache/
 server/Config.php
 server/**/.php_cs.cache
 server/vendor/
+
+# scratch copies of third-party packages
+docs/*/pcre2-wasm-pkg/
