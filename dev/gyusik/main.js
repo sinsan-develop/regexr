@@ -11,6 +11,7 @@ import {analyze, summary, explainRows, FLAG_NAMES} from "./model.js";
 import {renderRailroad} from "./railroad.js";
 import {diagnose, sortDiagnostics} from "./diagnose.js";
 import JsSolver from "./JsSolver.js";
+import {generate} from "./generate.js";
 import PcreSolver from "../src/helpers/PcreSolver.js";
 
 const $ = (id) => document.getElementById(id);
@@ -345,6 +346,59 @@ $("txtEditor").addEventListener("scroll", () => {}, true);
 // textarea and mirror must scroll together
 function syncScroll(id, mirror) { $(id).addEventListener("scroll", () => { $(mirror).style.transform = "translate(" + -$(id).scrollLeft + "px," + -$(id).scrollTop + "px)"; }); }
 syncScroll("text", "txtMirror");
+
+// ---------- make from examples (screen 2) ----------
+
+const lines = (el) => el.value.split(/\r?\n/).map((x) => x.replace(/\s+$/, "")).filter((x) => x !== "");
+
+function setMode(m) {
+	document.querySelector(".wb").hidden = m !== "bench";
+	$("makeView").hidden = m !== "make";
+	document.querySelectorAll(".mode[data-mode]").forEach((b) => b.classList.toggle("on", b.dataset.mode === m));
+	if (m === "make") { fillMake(); }
+}
+
+function fillMake() {
+	$("mkPos").value = state.tests.filter((t) => t.expect === "match").map((t) => t.text).join("\n");
+	$("mkNeg").value = state.tests.filter((t) => t.expect === "nomatch").map((t) => t.text).join("\n");
+}
+
+// the two text boxes and the workbench test cases are the same data.
+function syncTestsFromMake() {
+	let id = 0;
+	state.tests = lines($("mkPos")).map((text) => ({id: ++id, text, expect: "match"})).concat(lines($("mkNeg")).map((text) => ({id: ++id, text, expect: "nomatch"})));
+	save();
+	paintTests();
+}
+
+function paintCandidates(list) {
+	let host = $("mkList");
+	$("mkCount").textContent = list.length ? "후보 " + list.length + "개" : "후보";
+	if (!list.length) { host.innerHTML = "<p class=\"empty\">일치해야 할 예시를 한 줄 이상 넣어 주세요.</p>"; return; }
+	host.innerHTML = list.map((c, k) => {
+		let all = c.pass === c.total;
+		let m = analyze(c.pattern, "", "js");
+		let fails = (c.missed.length ? "일치해야 하는데 안 된 예: " + c.missed.map((x) => "\"" + esc(x) + "\"").join(", ") : "") + (c.missed.length && c.leaked.length ? " · " : "") + (c.leaked.length ? "일치하면 안 되는데 된 예: " + c.leaked.map((x) => "\"" + esc(x) + "\"").join(", ") : "");
+		return "<div class=\"cand" + (k === 0 && all ? " best" : "") + "\"><div class=\"hd\">" + (k === 0 && all ? "<span class=\"chip tip\">추천</span>" : "") + "<b>" + esc(c.title) + "</b><span class=\"src\">" + esc(c.source) + "</span></div>" +
+			"<pre>" + esc(c.pattern) + "</pre><p>" + esc(summary(m, {})) + "</p>" + (c.note ? "<p class=\"limit\">" + esc(c.note) + "</p>" : "") +
+			"<div class=\"ft\"><span class=\"" + (all ? "ok" : "bad") + "\">" + (all ? "예시 " + c.total + "개 모두 통과" : c.pass + "/" + c.total + " 통과" + (fails ? " · " + fails : "")) + "</span><button type=\"button\" class=\"send\" data-k=\"" + k + "\">작업대로 보내기</button></div></div>";
+	}).join("");
+	host.querySelectorAll(".send").forEach((b) => b.onclick = () => {
+		let c = list[+b.dataset.k];
+		state.pattern = c.pattern;
+		state.flags = "";
+		$("pattern").value = c.pattern;
+		save();
+		setMode("bench");
+		showView("tests");
+		render();
+	});
+}
+
+document.querySelectorAll(".mode[data-mode]").forEach((b) => b.onclick = () => setMode(b.dataset.mode));
+$("mkPos").addEventListener("input", syncTestsFromMake);
+$("mkNeg").addEventListener("input", syncTestsFromMake);
+$("mkGo").onclick = () => { syncTestsFromMake(); paintCandidates(generate(lines($("mkPos")), lines($("mkNeg")))); };
 
 // ---------- start ----------
 
