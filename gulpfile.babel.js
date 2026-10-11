@@ -68,7 +68,9 @@ gulp.task("serve", () => {
 });
 
 gulp.task("watch", () => {
-	gulp.watch("./dev/src/**/*.js", gulp.series(gulp.parallel("js", "pcre-worker"), "browserreload"));
+	gulp.watch("./dev/src/**/*.js", gulp.series(gulp.parallel("js", "pcre-worker", "gyusik-js"), "browserreload"));
+	gulp.watch("./dev/gyusik/*.{html,css}", gulp.series("gyusik-static"));
+	gulp.watch("./dev/gyusik/*.js", gulp.series("gyusik-js", "browserreload"));
 	gulp.watch("./index.html", gulp.series("dev-html", "browserreload"));
 	gulp.watch("./dev/icons/*.svg", gulp.series("icons"));
 	gulp.watch("./dev/inject/*", gulp.series("inject", "browserreload"));
@@ -127,6 +129,27 @@ gulp.task("pcre-worker", () => {
 		})
 	});
 });
+
+// 규식이 workbench (new UI): dev/gyusik -> deploy/gyusik.{js,css,html}. Reuses the RegExr lexer and solvers.
+gulp.task("gyusik-js", () => {
+	const plugins = [babelPlugin];
+	if (isProduction()) { plugins.push(terserPlugin); }
+	return rollup({
+		input: "./dev/gyusik/main.js",
+		plugins,
+		onwarn: (warning, warn) => { if (warning.code !== "CIRCULAR_DEPENDENCY") { warn(warning); } }
+	}).then(bundle => bundle.write({
+		format: "iife",
+		file: "./deploy/gyusik.js",
+		sourcemap: !isProduction()
+	}));
+});
+gulp.task("gyusik-static", () => {
+	return gulp.src(["./dev/gyusik/gyusik.html", "./dev/gyusik/gyusik.css"])
+		.pipe(gulp.dest("./deploy/"))
+		.pipe(browser.stream());
+});
+gulp.task("gyusik", gulp.parallel("gyusik-js", "gyusik-static"));
 
 // the worker fetches libpcre2.wasm from its own directory.
 gulp.task("copy-wasm", () => {
@@ -270,7 +293,7 @@ gulp.task("clean-build", () => {
 	]);
 })
 
-gulp.task("build", gulp.parallel("js", "pcre-worker", "copy-wasm", "sass"));
+gulp.task("build", gulp.parallel("js", "pcre-worker", "copy-wasm", "sass", "gyusik"));
 gulp.task("server", gulp.series("copy-server", "watch-server"));
 gulp.task("rename", gulp.parallel("rename-css", "rename-js"));
 
