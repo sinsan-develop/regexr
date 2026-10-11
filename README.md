@@ -22,7 +22,7 @@ npm ci --ignore-scripts
 npx gulp
 ```
 
-`npx gulp`은 빌드 후 http://localhost:3000 에 개발 서버를 띄우고 파일이 바뀌면 다시 빌드합니다. 배포용 빌드는 `npx gulp deploy`이며 결과는 `deploy/`에 생깁니다.
+`npx gulp`은 빌드 후 http://localhost:3350 에 개발 서버를 띄우고 파일이 바뀌면 다시 빌드합니다. 배포용 빌드는 `npx gulp deploy`이며 결과는 `deploy/`에 생깁니다.
 
 ## 원본과 라이선스
 

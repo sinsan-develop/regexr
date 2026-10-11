@@ -59,6 +59,7 @@ const serverCopyAndWatchGlob = [
 gulp.task("serve", () => {
 	browser({
 		server: { baseDir: "./deploy/" },
+		port: 3350,
 		open: false,
 		ui: false,
 	});
