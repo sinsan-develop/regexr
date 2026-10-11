@@ -1,6 +1,7 @@
 /*
 RegExr: Learn, Build, & Test RegEx
 Copyright (C) 2017  gskinner.com, inc.
+Modified for 규식이 (Gyusik) by sinsan-develop, 2026-10-11 (see NOTICE.md).
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -21,6 +22,7 @@ import Track from "./utils/Track";
 import EventDispatcher from "./events/EventDispatcher.js";
 import BrowserSolver from "./helpers/BrowserSolver.js";
 import ServerSolver from "./helpers/ServerSolver.js";
+import PcreSolver from "./helpers/PcreSolver.js";
 import profiles from "./profiles/profiles.js";
 
 import app from "./app";
@@ -57,6 +59,10 @@ export default class Flavor extends EventDispatcher {
 	}
 	
 	get solver() {
+		if (this._profile.id === "pcre") {
+			// PCRE2 runs as WebAssembly in a worker; created on first use so JS-only users never load the wasm.
+			return this._pcreSolver || (this._pcreSolver = new PcreSolver());
+		}
 		return this._profile.browser ? this._browserSolver : this._serverSolver;
 	}
 	

@@ -1,6 +1,7 @@
 /*
 RegExr: Learn, Build, & Test RegEx
 Copyright (C) 2017  gskinner.com, inc.
+Modified for 규식이 (Gyusik) by sinsan-develop, 2026-10-11 (see NOTICE.md).
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -23,8 +24,8 @@ let y=true, n=false;
 
 let pcre = {
 	id: "pcre",
-	label: "PCRE",
-	browser: false,
+	label: "PCRE2",
+	browser: true, // 규식이: PCRE2 runs in the browser as WebAssembly (PcreSolver), not on a server.
 	
 	flags: {
 		"u": n,

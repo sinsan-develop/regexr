@@ -25,6 +25,8 @@ const basename = require("path").basename;
 
 let js_file = "regexr.js";
 let css_file = "regexr.css";
+// PCRE2 worker and its wasm are loaded at runtime (not inlined), relative to the page.
+let pcre_worker_file = "pcre-worker.js";
 
 // constants
 const isProduction = () => process.env.NODE_ENV === "production";
@@ -66,7 +68,7 @@ gulp.task("serve", () => {
 });
 
 gulp.task("watch", () => {
-	gulp.watch("./dev/src/**/*.js", gulp.series("js", "browserreload"));
+	gulp.watch("./dev/src/**/*.js", gulp.series(gulp.parallel("js", "pcre-worker"), "browserreload"));
 	gulp.watch("./index.html", gulp.series("dev-html", "browserreload"));
 	gulp.watch("./dev/icons/*.svg", gulp.series("icons"));
 	gulp.watch("./dev/inject/*", gulp.series("inject", "browserreload"));
@@ -110,6 +112,28 @@ gulp.task("js", () => {
 	});
 });
 
+// PCRE2 worker: bundles PcreWorker.js with the pcre2-wasm wrapper into deploy/pcre-worker.js.
+gulp.task("pcre-worker", () => {
+	const plugins = [babelPlugin];
+	if (isProduction()) { plugins.push(terserPlugin); }
+	return rollup({
+		input: "./dev/src/helpers/PcreWorker.js",
+		plugins
+	}).then(bundle => {
+		return bundle.write({
+			format: "iife",
+			file: "./deploy/pcre-worker.js",
+			sourcemap: !isProduction()
+		})
+	});
+});
+
+// the worker fetches libpcre2.wasm from its own directory.
+gulp.task("copy-wasm", () => {
+	return gulp.src("./dev/src/pcre2-wasm/dist/libpcre2.wasm")
+		.pipe(gulp.dest("./deploy/"));
+});
+
 // create tasks for all themes
 themes.forEach(theme => {
 	gulp.task(`sass-${theme}`, () => {
@@ -141,6 +165,7 @@ gulp.task("html", () => {
 		.pipe(template({
 			js_file,
 			css_file,
+			pcre_worker_file,
 		}))
 		.pipe(htmlmin({
 			collapseWhitespace: true,
@@ -155,6 +180,7 @@ gulp.task("dev-html", () => {
 		.pipe(template({
 			js_file,
 			css_file,
+			pcre_worker_file,
 		}))
 		.pipe(htmlmin({
 			collapseWhitespace: true,
@@ -170,6 +196,7 @@ gulp.task("createFileHashes", (cb) => {
 	const css_version = createFileHash("deploy/regexr.css");
 	js_file = `deploy/${js_version}.js`;
 	css_file = `deploy/${css_version}.css`;
+	pcre_worker_file = "deploy/pcre-worker.js"; // in the build, index.html sits one level above deploy/
 	cb();
 });
 
@@ -243,7 +270,7 @@ gulp.task("clean-build", () => {
 	]);
 })
 
-gulp.task("build", gulp.parallel("js", "sass"));
+gulp.task("build", gulp.parallel("js", "pcre-worker", "copy-wasm", "sass"));
 gulp.task("server", gulp.series("copy-server", "watch-server"));
 gulp.task("rename", gulp.parallel("rename-css", "rename-js"));
 

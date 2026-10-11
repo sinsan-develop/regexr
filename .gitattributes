@@ -41,6 +41,7 @@
 *.fla binary
 *.swf binary
 *.pdf binary
+*.wasm binary
 
 ############################################################
 # End binary settings

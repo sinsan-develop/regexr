@@ -779,6 +779,7 @@ o.errors = {
 	esccharbad:"Invalid escape sequence.",
 	servercomm:"An error occurred while communicating with the server.",
 	offline:"이 기능은 아직 쓸 수 없습니다. 규식이는 지금 서버 없이 동작하며, 이 기능은 준비 중입니다.",
+	pcreload:"PCRE2 엔진을 불러오지 못했습니다. 페이지를 새로 고쳐 보세요. 계속 실패하면 libpcre2.wasm 파일이 함께 배포됐는지 확인하세요.",
 	extraelse:"Extra else in conditional group.",
 	unmatchedref:"Reference to non-existent group \"{{name}}\".",
 	modebad:"Unrecognized mode flag \"<code>{{errmode}}</code>\".",
