@@ -239,3 +239,5 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .hinttext { background: var(--code-bg); border-radius: 6px; padding: 5px 10px; }
 .lnfoot { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; padding-top: 6px; }
 @media (max-width: 900px) { .ln { grid-template-columns: minmax(0, 1fr); } .lnnav { position: static; } }
+
+.statusbar[hidden] { display: none; }
