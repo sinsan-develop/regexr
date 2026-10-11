@@ -14,6 +14,7 @@ import JsSolver from "./JsSolver.js";
 import {generate} from "./generate.js";
 import {initAi} from "./aiui.js";
 import {initLearn} from "./learn.js";
+import {listPatterns, getPattern, savePattern, deletePattern, exportJson, importJson} from "./saved.js";
 import PcreSolver from "../src/helpers/PcreSolver.js";
 
 const $ = (id) => document.getElementById(id);
@@ -359,6 +360,8 @@ function setMode(m) {
 	$("makeView").hidden = m !== "make";
 	$("settingsView").hidden = m !== "settings";
 	$("learnView").hidden = m !== "learn";
+	$("myView").hidden = m !== "mine";
+	if (m === "mine") { paintMy(); }
 	$("statusbar").hidden = m !== "bench"; // the status bar describes the workbench run
 	if (m === "learn" && learn) { learn.show(); }
 	document.querySelectorAll(".mode[data-mode]").forEach((b) => b.classList.toggle("on", b.dataset.mode === m));
@@ -456,12 +459,128 @@ learn = initLearn({
 	}
 });
 
+// ---------- my patterns ----------
+
+const tagsOf = (s) => s.split(/[,，]/).map((x) => x.trim()).filter(Boolean);
+
+function currentRecord(id) {
+	return {id, name: $("saveName").value.trim(), pattern: state.pattern, flags: state.flags, engine: state.engine, text: state.text,
+		tests: state.tests.map((t) => ({text: t.text, expect: t.expect})), tags: tagsOf($("saveTags").value)};
+}
+
+function doSave(asNew) {
+	let msg = $("saveMsg");
+	if (!state.pattern) { msg.textContent = "저장할 패턴이 없습니다."; return; }
+	let rec = savePattern(currentRecord(asNew ? null : state.currentId));
+	if (!rec) { msg.textContent = "브라우저 저장 공간이 부족해 저장하지 못했습니다. 내보내기로 백업한 뒤 오래된 패턴을 지우세요."; return; }
+	state.currentId = rec.id;
+	$("saveName").value = rec.name;
+	save();
+	paintSaveRow();
+	msg.textContent = "저장했습니다.";
+	setTimeout(() => { if (msg.textContent === "저장했습니다.") { msg.textContent = ""; } }, 2500);
+}
+
+function paintSaveRow() {
+	let cur = state.currentId && getPattern(state.currentId);
+	if (state.currentId && !cur) { state.currentId = null; }
+	$("saveBtn").textContent = cur ? "저장 (덮어쓰기)" : "저장";
+	$("saveNew").hidden = !cur;
+}
+
+function openSaved(id) {
+	let p = getPattern(id);
+	if (!p) { return; }
+	state.pattern = p.pattern;
+	state.engine = p.engine;
+	state.flags = p.flags.split("").filter((c) => FLAGS[p.engine].includes(c)).join("");
+	state.text = p.text;
+	state.tests = p.tests.map((t, k) => ({id: k + 1, text: t.text, expect: t.expect}));
+	state.currentId = p.id;
+	$("engine").value = p.engine;
+	$("pattern").value = p.pattern;
+	$("text").value = p.text;
+	$("saveName").value = p.name;
+	$("saveTags").value = p.tags.join(", ");
+	save();
+	paintTests();
+	setMode("bench");
+	render();
+	paintSaveRow();
+}
+
+function download(name, text) {
+	let url = URL.createObjectURL(new Blob([text], {type: "application/json"}));
+	let a = document.createElement("a");
+	a.href = url;
+	a.download = name;
+	document.body.appendChild(a);
+	a.click();
+	a.remove();
+	setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function myMessage(text, err) {
+	let box = $("myMsg");
+	box.hidden = !text;
+	box.className = "banner" + (err ? " err" : "");
+	box.textContent = text || "";
+}
+
+function paintMy() {
+	let q = $("mySearch").value.trim().toLowerCase(), all = listPatterns();
+	let list = q ? all.filter((p) => (p.name + " " + p.tags.join(" ") + " " + p.pattern).toLowerCase().includes(q)) : all;
+	$("myCount").textContent = all.length ? all.length + "개" + (q ? " 중 " + list.length + "개 표시" : "") : "";
+	if (!all.length) { $("myList").innerHTML = "<p class=\"empty\">저장한 패턴이 없습니다. 작업대에서 패턴을 만들고 이름을 적어 [저장]을 누르면 여기에 나타납니다.</p>"; return; }
+	if (!list.length) { $("myList").innerHTML = "<p class=\"empty\">검색 결과가 없습니다.</p>"; return; }
+	$("myList").innerHTML = list.map((p) => "<div class=\"mycard\" data-id=\"" + esc(p.id) + "\"><div class=\"hd\"><b>" + esc(p.name) + "</b>" + p.tags.map((t) => "<span class=\"tag\">" + esc(t) + "</span>").join("") + "</div>" +
+		"<pre>" + esc(p.pattern) + (p.flags ? "  /" + esc(p.flags) : "") + "</pre><div class=\"meta\">" + (p.engine === "pcre" ? "PCRE2" : "JavaScript") + " · 테스트 케이스 " + p.tests.length + "개 · " + new Date(p.updated).toLocaleString("ko-KR") + "</div>" +
+		"<div class=\"acts\"><button type=\"button\" class=\"send\" data-act=\"open\">열기</button><button type=\"button\" class=\"send\" data-act=\"export\">이 패턴만 내보내기</button><button type=\"button\" class=\"send danger\" data-act=\"del\">삭제</button></div></div>").join("");
+}
+
+$("saveBtn").onclick = () => doSave(false);
+$("saveNew").onclick = () => doSave(true);
+$("mySearch").addEventListener("input", paintMy);
+$("myList").addEventListener("click", (e) => {
+	let b = e.target.closest("[data-act]");
+	if (!b) { return; }
+	let id = b.closest(".mycard").dataset.id, act = b.dataset.act;
+	if (act === "open") { openSaved(id); }
+	else if (act === "export") { let p = getPattern(id); download("규식이-" + (p.name.replace(/[\\/:*?"<>|]/g, "_") || "패턴") + ".json", exportJson([id])); }
+	else if (act === "del") {
+		if (!b.classList.contains("confirm")) { b.classList.add("confirm"); b.textContent = "정말 삭제"; setTimeout(() => { b.classList.remove("confirm"); b.textContent = "삭제"; }, 3000); return; }
+		deletePattern(id);
+		paintMy();
+		paintSaveRow();
+	}
+});
+$("myExport").onclick = () => {
+	if (!listPatterns().length) { myMessage("내보낼 패턴이 없습니다.", true); return; }
+	download("규식이-패턴-" + new Date().toISOString().slice(0, 10) + ".json", exportJson());
+	myMessage("파일로 내보냈습니다. 다운로드 폴더를 확인하세요.");
+};
+$("myImport").onclick = () => $("myFile").click();
+$("myFile").addEventListener("change", () => {
+	let f = $("myFile").files[0];
+	if (!f) { return; }
+	let r = new FileReader();
+	r.onload = () => {
+		let res = importJson(String(r.result));
+		if (res.error) { myMessage(res.error, true); }
+		else { myMessage("가져왔습니다: " + res.added + "개 추가" + (res.skipped ? ", 이미 있어 건너뜀 " + res.skipped + "개" : "") + (res.bad ? ", 읽을 수 없어 제외 " + res.bad + "개" : "") + "."); paintMy(); }
+		$("myFile").value = "";
+	};
+	r.onerror = () => myMessage("파일을 읽지 못했습니다.", true);
+	r.readAsText(f);
+});
+
 // ---------- start ----------
 
 $("engine").value = state.engine;
 $("pattern").value = state.pattern;
 $("text").value = state.text;
 paintTests();
+paintSaveRow();
 showView(state.view);
 render();
 window.gyusik = {get state() { return state; }, get model() { return model; }, get result() { return result; }, get diags() { return diags; }, get testRes() { return testRes; }};
