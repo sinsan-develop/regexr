@@ -34,6 +34,7 @@ const SAMPLE = {
 	text: "010-1234-5678\n010-123-5678\n010-9876-5432\n연락처: 010-5555-0000",
 	engine: "js",
 	view: "text",
+	toolInput: {replace: null, list: null}, // null = the default for the engine
 	tests: [
 		{id: 1, text: "010-1234-5678", expect: "match"},
 		{id: 2, text: "010-9876-5432", expect: "match"},
@@ -216,15 +217,17 @@ function run() {
 		paintText();
 		paintStatus();
 		paintTestMarks();
+		paintTool(); // an invalid pattern must not leave the previous output on screen
 		return;
 	}
 	if (state.engine === "pcre" && !solvers.pcre) { solvers.pcre = new PcreSolver(); }
-	let req = {pattern: state.pattern, flags: state.flags, text: state.text, mode: "text", tests: null, tool: null};
+	let req = {pattern: state.pattern, flags: state.flags, text: state.text, mode: "text", tests: null, tool: toolRequest()};
 	solvers[state.engine].solve(req, (r) => {
 		if (seq !== runSeq) { return; }
 		result = r;
 		paintText();
 		paintStatus();
+		paintTool();
 		runTests(seq);
 	});
 }
@@ -293,10 +296,57 @@ function paintTestMarks() {
 	b.classList.toggle("bad", st.known && st.pass < st.total);
 }
 
+// ---------- replace / extract ----------
+
+const TOOL_DEFAULTS = {js: {replace: "[$&]", list: "$&\\n"}, pcre: {replace: "[$0]", list: "$0\\n"}};
+const TOOL_HINTS = {
+	js: {replace: "일치한 부분을 이 문자열로 바꿉니다. $& 일치한 전체, $1 그룹 1, $<이름> 이름 붙은 그룹, \\n 줄바꿈.", list: "일치할 때마다 이 형식으로 한 줄씩 모읍니다. $& 일치한 전체, $1 그룹 1, \\n 줄바꿈 (쉼표 하나만 쓰면 쉼표로 이어 붙입니다)."},
+	pcre: {replace: "일치한 부분을 이 문자열로 바꿉니다. $0 일치한 전체, $1 그룹 1, ${이름} 이름 붙은 그룹, \\n 줄바꿈.", list: "일치할 때마다 이 형식으로 한 줄씩 모읍니다. $0 일치한 전체, $1 그룹 1, \\n 줄바꿈 (쉼표 하나만 쓰면 쉼표로 이어 붙입니다)."}
+};
+
+const toolKind = () => (state.view === "replace" || state.view === "list" ? state.view : null);
+const toolValue = (kind) => (state.toolInput[kind] != null ? state.toolInput[kind] : TOOL_DEFAULTS[state.engine][kind]);
+
+function toolRequest() {
+	let k = toolKind();
+	return k ? {id: k, input: toolValue(k)} : null;
+}
+
+function paintTool() {
+	let k = toolKind();
+	if (!k) { return; }
+	let out = $("toolOut"), res = result && result.tool && result.tool.result;
+	let blocked = !state.pattern || model.errors.some((e) => !e.warning) || (result && result.error && !result.error.warning);
+	out.classList.toggle("empty", blocked || res == null);
+	if (blocked) { out.textContent = "패턴을 고치면 결과가 나옵니다."; }
+	else if (res == null) { out.textContent = result ? "(결과 없음)" : "계산 중…"; }
+	else { out.textContent = res === "" ? "(빈 결과)" : res; }
+}
+
+function paintToolInput() {
+	let k = toolKind();
+	if (!k) { return; }
+	$("toolInput").value = toolValue(k);
+	$("toolHint").textContent = TOOL_HINTS[state.engine][k];
+	$("toolOutLabel").textContent = k === "replace" ? "치환 결과 (테스트 텍스트 전체)" : "추출 결과";
+	$("toolMsg").textContent = "";
+}
+
+$("toolInput").addEventListener("input", () => { let k = toolKind(); if (k) { state.toolInput[k] = $("toolInput").value; save(); schedule(); } });
+$("toolCopy").onclick = () => {
+	let t = $("toolOut");
+	if (t.classList.contains("empty")) { return; }
+	let done = (ok) => { $("toolMsg").textContent = ok ? "복사했습니다." : "복사하지 못했습니다. 결과를 직접 선택해 복사하세요."; setTimeout(() => { $("toolMsg").textContent = ""; }, 2000); };
+	if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(t.textContent).then(() => done(true), () => done(false)); } else { done(false); }
+};
+
 function showView(v) {
 	state.view = v;
 	$("viewText").hidden = v !== "text";
 	$("viewTests").hidden = v !== "tests";
+	$("viewTool").hidden = !(v === "replace" || v === "list");
+	paintToolInput();
+	if (toolKind()) { schedule(); }
 	document.querySelectorAll(".segb").forEach((b) => b.classList.toggle("on", b.dataset.view === v));
 	save();
 }
@@ -316,6 +366,7 @@ $("pattern").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.pre
 $("text").addEventListener("input", (e) => { state.text = e.target.value; save(); paintText(); schedule(); });
 $("engine").addEventListener("change", (e) => {
 	state.engine = e.target.value;
+	paintToolInput();
 	state.flags = state.flags.split("").filter((c) => FLAGS[state.engine].includes(c)).join("");
 	save();
 	render();

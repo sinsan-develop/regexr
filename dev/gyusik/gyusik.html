@@ -58,6 +58,8 @@
 				<span class="seg" role="tablist" aria-label="테스트 방식">
 					<button class="segb on" type="button" role="tab" data-view="text">테스트 텍스트</button>
 					<button class="segb" type="button" role="tab" data-view="tests">테스트 케이스 <span class="badge" id="bTests">0</span></button>
+					<button class="segb" type="button" role="tab" data-view="replace">치환</button>
+					<button class="segb" type="button" role="tab" data-view="list">추출</button>
 				</span>
 				<span class="count" id="count"></span>
 			</div>
@@ -66,6 +68,12 @@
 				<pre class="mirror" id="txtMirror" aria-hidden="true"></pre>
 				<textarea id="text" spellcheck="false" aria-label="테스트 텍스트"></textarea>
 			</div>
+			</div>
+			<div id="viewTool" hidden>
+				<p class="hint" id="toolHint"></p>
+				<input id="toolInput" type="text" spellcheck="false" autocomplete="off" aria-label="치환 또는 추출 형식">
+				<div class="fieldrow"><span class="fld" id="toolOutLabel">결과</span><button type="button" class="send" id="toolCopy">복사</button><span id="toolMsg" class="muted" aria-live="polite"></span></div>
+				<pre class="toolout" id="toolOut" aria-live="polite"></pre>
 			</div>
 			<div id="viewTests" hidden>
 				<p class="hint">정규식이 <b>일치해야 하는</b> 예와 <b>일치하면 안 되는</b> 예를 적어 두면, 패턴을 고칠 때마다 바로 통과 여부를 알려줍니다.</p>
