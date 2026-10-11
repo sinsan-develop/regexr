@@ -27,6 +27,7 @@
 			<option value="pcre">PCRE2</option>
 		</select>
 	</label>
+	<button type="button" class="gear" id="openSettings" title="설정" aria-label="설정">설정</button>
 	<span class="status-chip" id="net" title="이 화면의 모든 기능은 인터넷 없이 동작합니다">오프라인 사용 가능</span>
 </header>
 
@@ -83,17 +84,64 @@
 
 <main class="mk" id="makeView" hidden>
 	<section class="pane">
-		<div class="label">예시로 만들기 <span class="hint">맞아야 할 문자열과 틀려야 할 문자열을 한 줄에 하나씩 적으세요. 붙여넣기도 됩니다.</span></div>
+		<div class="label">
+			<span class="seg" role="tablist" aria-label="만드는 방법">
+				<button class="segb on" type="button" role="tab" id="mkTabEx">예시로 만들기</button>
+				<button class="segb" type="button" role="tab" id="mkTabNl">한국어 문장으로 만들기 <span class="chip online">온라인</span></button>
+			</span>
+		</div>
+		<div id="mkNl" hidden>
+			<label class="fld" for="nlSentence">만들고 싶은 패턴을 문장으로 쓰세요</label>
+			<textarea id="nlSentence" class="lines" spellcheck="false" rows="3" placeholder="010으로 시작하고 하이픈으로 나뉜 휴대폰 번호"></textarea>
+			<p class="hint">아래 예시 칸에 적은 예시도 함께 보내면 더 정확합니다.</p>
+			<div class="sendbox" id="nlSend"></div>
+			<div class="fieldrow"><span id="nlModel" class="muted"></span><button type="button" class="linkbtn" id="nlToSettings">설정</button></div>
+			<div class="banner" id="nlWarn" hidden></div>
+			<div class="fieldrow"><button type="button" class="primary" id="nlGo">AI로 만들기</button><span id="nlStatus" class="muted" aria-live="polite"></span></div>
+		</div>
+		<div id="mkEx"><span class="hint">맞아야 할 문자열과 틀려야 할 문자열을 한 줄에 하나씩 적으세요. 붙여넣기도 됩니다.</span></div>
 		<label class="fld" for="mkPos">일치해야 할 예시</label>
 		<textarea id="mkPos" class="lines" spellcheck="false" rows="6" placeholder="2026-10-11&#10;2025-01-31"></textarea>
 		<label class="fld" for="mkNeg">일치하면 안 될 예시</label>
 		<textarea id="mkNeg" class="lines" spellcheck="false" rows="6" placeholder="2026-13-01&#10;26-10-11"></textarea>
-		<div><button type="button" class="primary" id="mkGo">후보 만들기</button></div>
+		<div id="mkExGo"><button type="button" class="primary" id="mkGo">후보 만들기</button></div>
 		<p class="hint">이 예시는 작업대의 테스트 케이스와 같은 데이터입니다. 후보를 작업대로 보내면 예시도 함께 갑니다.</p>
 	</section>
 	<section class="pane">
 		<div class="label" id="mkCount">후보</div>
 		<div id="mkList"><p class="empty">예시를 넣고 [후보 만들기]를 누르면 후보가 나옵니다.</p></div>
+	</section>
+</main>
+<main class="st" id="settingsView" hidden>
+	<section class="pane">
+		<div class="label">AI 연결 <span class="hint">한국어 문장으로 정규식을 만들 때만 씁니다. 다른 기능은 인터넷 없이 동작합니다.</span></div>
+		<label class="fld" for="setProvider">제공자</label>
+		<select id="setProvider"></select>
+		<label class="fld" for="setProtocol">방식</label>
+		<select id="setProtocol"><option value="openai">OpenAI 호환 (/chat/completions)</option><option value="anthropic">Anthropic 호환 (/v1/messages)</option></select>
+		<label class="fld" for="setBase">서버 주소</label>
+		<input id="setBase" type="text" spellcheck="false" autocomplete="off">
+		<label class="fld" for="setKey">API 키</label>
+		<input id="setKey" type="password" spellcheck="false" autocomplete="off">
+		<label class="chk"><input type="checkbox" id="setSaveKey"> 이 기기에 저장 <span class="hint">브라우저 저장소에 암호화 없이 저장됩니다. 공용 PC에서는 끄세요. 끄면 탭을 닫을 때까지만 기억합니다.</span></label>
+		<div class="fieldrow"><button type="button" class="primary" id="setCheck">연결 확인</button><span id="setStatus" class="muted" aria-live="polite"></span></div>
+		<label class="fld" for="setModel">모델 <span class="hint">연결 확인 후 목록에서 고르거나 직접 입력하세요.</span></label>
+		<input id="setModel" type="text" list="setModels" spellcheck="false" autocomplete="off">
+		<datalist id="setModels"></datalist>
+		<label class="fld" for="setEffort">추론 등급</label>
+		<select id="setEffort"></select>
+		<p class="hint" id="setEffortNote"></p>
+	</section>
+	<section class="pane">
+		<div class="label">보내는 내용과 보내지 않는 내용</div>
+		<ul class="plain">
+			<li><b>보냄:</b> 문장, 엔진 이름, 예시 칸에 적은 예시 문자열</li>
+			<li><b>보내지 않음:</b> 작업대의 테스트 텍스트, 저장한 패턴, 테스트 케이스</li>
+			<li><b>키:</b> 이 기기에서 입력한 서버로만 전송됩니다. 규식이 서버를 거치지 않습니다.</li>
+		</ul>
+		<div class="label">관리자</div>
+		<label class="chk"><input type="checkbox" id="setBlock"> 외부 통신 완전 차단 <span class="hint">켜면 AI 기능이 꺼지고 어떤 요청도 보내지 않습니다. 폐쇄망 보안 심사용입니다.</span></label>
+		<div><button type="button" class="send" id="setBack">작업대로 돌아가기</button></div>
 	</section>
 </main>
 <footer class="statusbar" id="statusbar"></footer>

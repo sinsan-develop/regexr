@@ -12,6 +12,7 @@ import {renderRailroad} from "./railroad.js";
 import {diagnose, sortDiagnostics} from "./diagnose.js";
 import JsSolver from "./JsSolver.js";
 import {generate} from "./generate.js";
+import {initAi} from "./aiui.js";
 import PcreSolver from "../src/helpers/PcreSolver.js";
 
 const $ = (id) => document.getElementById(id);
@@ -41,6 +42,7 @@ const SAMPLE = {
 
 let state = load();
 let solvers = {js: new JsSolver(), pcre: null};
+let ai = null;
 let model = null, rows = [], diags = [], result = null, testRes = null, hot = null, tab = "explain", runSeq = 0, timer = 0;
 
 function load() {
@@ -354,8 +356,18 @@ const lines = (el) => el.value.split(/\r?\n/).map((x) => x.replace(/\s+$/, "")).
 function setMode(m) {
 	document.querySelector(".wb").hidden = m !== "bench";
 	$("makeView").hidden = m !== "make";
+	$("settingsView").hidden = m !== "settings";
 	document.querySelectorAll(".mode[data-mode]").forEach((b) => b.classList.toggle("on", b.dataset.mode === m));
-	if (m === "make") { fillMake(); }
+	if (m === "make") { fillMake(); if (ai) { ai.refresh(); } }
+}
+
+function mkTab(nl) {
+	$("mkNl").hidden = !nl;
+	$("mkEx").hidden = nl;
+	$("mkExGo").hidden = nl;
+	$("mkTabNl").classList.toggle("on", nl);
+	$("mkTabEx").classList.toggle("on", !nl);
+	if (nl && ai) { ai.refresh(); }
 }
 
 function fillMake() {
@@ -399,6 +411,30 @@ document.querySelectorAll(".mode[data-mode]").forEach((b) => b.onclick = () => s
 $("mkPos").addEventListener("input", syncTestsFromMake);
 $("mkNeg").addEventListener("input", syncTestsFromMake);
 $("mkGo").onclick = () => { syncTestsFromMake(); paintCandidates(generate(lines($("mkPos")), lines($("mkNeg")))); };
+
+$("mkTabEx").onclick = () => mkTab(false);
+$("mkTabNl").onclick = () => mkTab(true);
+$("openSettings").onclick = () => setMode("settings");
+$("setBack").onclick = () => setMode("bench");
+ai = initAi({
+	$, esc, lines,
+	getState: () => state,
+	exampleCount: () => lines($("mkPos")).length + lines($("mkNeg")).length,
+	showExamples: () => mkTab(false),
+	showSettings: () => setMode("settings"),
+	sendToBench: (pattern, flags) => {
+		state.pattern = pattern;
+		state.flags = FLAGS[state.engine].split("").filter((c) => flags.includes(c)).join("");
+		$("pattern").value = pattern;
+		save();
+		setMode("bench");
+		showView("tests");
+		render();
+	}
+});
+
+$("mkPos").addEventListener("input", () => ai && ai.refresh());
+$("mkNeg").addEventListener("input", () => ai && ai.refresh());
 
 // ---------- start ----------
 
