@@ -144,11 +144,17 @@ gulp.task("gyusik-js", () => {
 		sourcemap: !isProduction()
 	}));
 });
-gulp.task("gyusik-static", () => {
-	return gulp.src(["./dev/gyusik/gyusik.html", "./dev/gyusik/gyusik.css"])
+gulp.task("gyusik-css", () => {
+	return gulp.src("./dev/gyusik/gyusik.css").pipe(gulp.dest("./deploy/")).pipe(browser.stream());
+});
+gulp.task("gyusik-html", () => {
+	return gulp.src("./dev/gyusik/gyusik.html")
+		.pipe(template({gyusik_css: "gyusik.css", gyusik_js: "gyusik.js", gyusik_pcre: "pcre-worker.js"}))
+		.pipe(rename("index.html"))
 		.pipe(gulp.dest("./deploy/"))
 		.pipe(browser.stream());
 });
+gulp.task("gyusik-static", gulp.parallel("gyusik-css", "gyusik-html"));
 gulp.task("gyusik", gulp.parallel("gyusik-js", "gyusik-static"));
 
 // the worker fetches libpcre2.wasm from its own directory.
@@ -195,6 +201,15 @@ gulp.task("html", () => {
 			conservativeCollapse: true,
 			removeComments: true
 		}))
+		.pipe(rename("regexr-legacy.html"))
+		.pipe(gulp.dest("build"));
+});
+
+// 규식이 is the main page: build/index.html (paths are relative to the build root)
+gulp.task("gyusik-html-build", () => {
+	return gulp.src("./dev/gyusik/gyusik.html")
+		.pipe(template({gyusik_css: "deploy/gyusik.css", gyusik_js: "deploy/gyusik.js", gyusik_pcre: "deploy/pcre-worker.js"}))
+		.pipe(rename("index.html"))
 		.pipe(gulp.dest("build"));
 });
 
@@ -210,6 +225,7 @@ gulp.task("dev-html", () => {
 			conservativeCollapse: true,
 			removeComments: true
 		}))
+		.pipe(rename("regexr-legacy.html"))
 		.pipe(gulp.dest("deploy"));
 });
 
@@ -264,7 +280,8 @@ gulp.task("copy", () => {
 		"deploy/**",
 		"assets/**",
 		"!deploy/*.map",
-		...serverCopyAndWatchGlob
+		"!deploy/*.html"
+		// 규식이 has no PHP backend, so index.php and server/ are not shipped (an index.php could shadow index.html).
 	], {base: "./"})
 	.pipe(gulp.dest("./build/"));
 });
@@ -306,7 +323,7 @@ gulp.task("default",
 gulp.task("deploy",
 	gulp.series(
 		cb => (process.env.NODE_ENV = "production") && cb(),
-		"clean", "build", "createFileHashes", "html", "copy", "rename", "clean-build"
+		"clean", "build", "createFileHashes", "html", "gyusik-html-build", "copy", "rename", "clean-build"
 	)
 );
 
