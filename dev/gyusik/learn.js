@@ -14,6 +14,14 @@ import JsSolver from "./JsSolver.js";
 
 const KEY = "gyusik.learn";
 
+/** Grades one case against the solver's match for it. found = did the pattern match; ok = matches the expectation. */
+function grade(c, r) {
+	if (!r) { return {ok: null, found: false}; }
+	let found = r.i != null;
+	if (c.found !== undefined) { return {ok: found && c.text.substr(r.i, r.l) === c.found, found}; }
+	return {ok: found === c.expect, found};
+}
+
 export function initLearn(ctx) {
 	let $ = ctx.$, esc = ctx.esc;
 	let prog = {done: {}, cur: 0};
@@ -29,7 +37,7 @@ export function initLearn(ctx) {
 		$("lnNav").innerHTML = "<div class=\"label\">강의</div>" + LESSONS.map((l, k) => {
 			let done = lessonDone(l), tasksDone = l.tasks.filter((t) => prog.done[t.id]).length;
 			return "<button type=\"button\" class=\"lnitem" + (k === prog.cur ? " cur" : "") + "\" data-k=\"" + k + "\"><span class=\"no\">" + (k + 1) + "</span><span>" + esc(l.title) + "</span><span class=\"st" + (done ? " done" : "") + "\">" + (done ? "완료" : tasksDone ? tasksDone + "/" + l.tasks.length : "") + "</span></button>";
-		}).join("") + "<div class=\"lnsoon\">7강 이후(많이 vs 적게, 앞뒤 살피기, 엔진마다 다른 점, 느려지는 패턴, 한글 다루기)는 준비 중입니다.</div>";
+		}).join("") + "";
 		$("lnNav").querySelectorAll(".lnitem").forEach((b) => b.onclick = () => { prog.cur = +b.dataset.k; save(); show(); });
 	}
 
@@ -55,13 +63,17 @@ export function initLearn(ctx) {
 		let box = $("lnBody").querySelector(".task[data-id=\"" + t.id + "\"]");
 		let input = box.querySelector(".tin"), table = box.querySelector(".tcases");
 		let paint = (res, msg) => {
+			let all; // set below
 			table.innerHTML = t.cases.map((c, k) => {
 				let r = res && res.matches && res.matches.find((m) => m.id === k);
-				let found = r ? r.i != null : null;
-				let ok = found === null ? null : found === c.expect;
-				return "<tr class=\"" + (ok === null ? "" : ok ? "ok" : "bad") + "\"><td><code>" + (c.text === "" ? "(빈 줄)" : esc(c.text)) + "</code></td><td>" + (c.expect ? "찾아야 함" : "건너뛰어야 함") + "</td><td class=\"res\">" + (ok === null ? "" : ok ? "✓ " + (found ? "찾음" : "건너뜀") : "✗ " + (found ? "찾았음" : "건너뜀")) + "</td></tr>";
+				let g = grade(c, r);
+				let ok = g.ok;
+				let want = c.found !== undefined ? "<code>" + esc(c.found) + "</code> 만 찾아야 함" : c.expect ? "찾아야 함" : "건너뛰어야 함";
+				let got = r && r.i != null ? "<code>" + esc(c.text.substr(r.i, r.l)) + "</code>" : "";
+				return "<tr class=\"" + (ok === null ? "" : ok ? "ok" : "bad") + "\"><td><code>" + (c.text === "" ? "(빈 줄)" : esc(c.text)) + "</code></td><td>" + want + "</td><td class=\"res\">" + (ok === null ? "" : (ok ? "✓ " : "✗ ") + (g.found ? got + " 찾음" : "건너뜀")) + "</td></tr>";
 			}).join("") + (msg ? "<tr><td colspan=\"3\" class=\"bad\">" + esc(msg) + "</td></tr>" : "");
-			let all = res && res.matches && t.cases.every((c, k) => { let r = res.matches.find((m) => m.id === k); return r && ((r.i != null) === c.expect); });
+			all = res && res.matches && t.cases.every((c, k) => grade(c, res.matches.find((m) => m.id === k)).ok === true);
+			if (all && t.must && !new RegExp(t.must.re).test(input.value)) { all = false; msg = t.must.msg; table.insertAdjacentHTML("beforeend", "<tr><td colspan=\"3\" class=\"bad\">" + esc(msg) + "</td></tr>"); }
 			box.classList.toggle("pass", !!all);
 			box.querySelector(".taskdone").hidden = !all;
 			if (all && !prog.done[t.id]) { prog.done[t.id] = true; save(); paintNav(); }
