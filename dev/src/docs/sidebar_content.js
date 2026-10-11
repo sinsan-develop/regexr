@@ -168,7 +168,7 @@ home.kids = [
 		id: "engine",
 		label:"RegEx engines",
 		desc:"While the core feature set of regular expressions is fairly consistent, different implementations (ex. Perl vs Java) may have different features or behaviours."+
-			 "<p>규식이는 지금 브라우저에서 실행하는 JavaScript RegExp를 지원합니다. PCRE2는 서버 없이 실행하는 방식으로 준비 중입니다.</p>"+
+			 "<p>규식이는 JavaScript RegExp와 PCRE2를 지원합니다. 둘 다 브라우저 안에서 실행되며 서버가 필요 없습니다.</p>"+
 			 "<p>You can switch engines using the dropdown in Expression.</p>",
 		kids: [
 			{
@@ -183,8 +183,9 @@ home.kids = [
 				"</ul></p>"
 			},
 			{
-			label:"PCRE (PHP)",
-			desc:"PHP {{getPHPVersion()}} and PCRE {{getPCREVersion()}} are used to execute your pattern on our server."
+			label:"PCRE2",
+			desc:"PCRE2 라이브러리를 WebAssembly로 컴파일해 브라우저의 별도 작업자(Web Worker)에서 실행합니다. 인터넷 연결이나 서버가 필요 없습니다."+
+				"<p>처음 PCRE2를 고를 때 엔진(libpcre2.wasm, 약 590KB)을 한 번 불러옵니다.</p>"
 			}
 		]
 		},

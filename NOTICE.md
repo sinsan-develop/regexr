@@ -12,6 +12,13 @@ License, or (at your option) any later version. See [LICENSE](LICENSE).
 "RegExr" is the name of the original project by gskinner.com, inc. 규식이 is an independent
 modified version and is not affiliated with or endorsed by gskinner.com, inc.
 
+## Third-party components
+
+- PCRE2 (BSD-3-Clause WITH PCRE2-exception), compiled to WebAssembly in
+  `dev/src/pcre2-wasm/dist/libpcre2.wasm`. Licence: `dev/src/pcre2-wasm/LICENCE.PCRE2.md`.
+- pcre2-wasm wrapper by J. Stephen Riley (MIT), as adapted in RegExr's `pcre-worker` branch.
+  Licence: `dev/src/pcre2-wasm/LICENSE`. Changes: `dev/src/pcre2-wasm/README.md`.
+
 ## 수정 내역 (Modifications)
 
 수정한 소스 파일에는 머리 주석에 `Modified for 규식이 (Gyusik) by sinsan-develop, <날짜>` 줄을 넣습니다.
@@ -29,3 +36,8 @@ modified version and is not affiliated with or endorsed by gskinner.com, inc.
 - 로컬 실행 시 테스트 계정 대신 익명 사용자로 시작합니다.
 - 빌드: `gulp-sass`를 5.1로 올리고 dart-sass(`sass`)를 직접 넘기도록 바꿨습니다. 이전 버전이 끌어오던 node-sass는 현재 Node에서 빌드되지 않습니다. 개발 서버가 브라우저를 자동으로 열지 않도록 하고, 포트를 3350으로 바꿨습니다.
 - README를 규식이용으로 새로 쓰고, 원본 README는 `README.RegExr.md`로 보존했습니다.
+- PCRE를 서버 대신 브라우저 안에서 실행합니다. PCRE2를 WebAssembly로 돌리는 전용 작업자(`PcreWorker.js`)와 이를 부르는 `PcreSolver.js`를 추가했습니다. RegExr의 미완성 `pcre-worker` 브랜치(2023)를 바탕으로 했습니다. wasm은 PCRE를 처음 고를 때만 불러오고, 작업자 파일 위치를 기준으로 찾습니다. 엔진 이름은 "PCRE2 (Browser)"로 표시합니다.
+- 그 브랜치의 `libpcre2.wasm`은 텍스트로 커밋되면서 깨져 있었습니다. npm `@stephen-riley/pcre2-wasm@1.2.4`의 정상 파일로 바꾸고, `.gitattributes`에 `*.wasm binary`를 추가했습니다.
+- 원본 버그 수정: JS 엔진에서 요청이 연달아 들어오면 이전 작업자의 타이머가 남아 최신 결과를 거짓 "timeout" 오류로 덮어쓰던 문제(`BrowserSolver`).
+- 빌드: `pcre-worker`, `copy-wasm` 작업을 추가했습니다. index.html은 `<meta name="pcre-worker">`로 작업자 위치를 알려줍니다.
+- 도움말의 엔진 설명과 소개 문구를 PCRE2 브라우저 실행에 맞게 고쳤습니다.

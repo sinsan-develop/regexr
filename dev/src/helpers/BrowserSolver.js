@@ -1,6 +1,7 @@
 /*
 RegExr: Learn, Build, & Test RegEx
 Copyright (C) 2017  gskinner.com, inc.
+Modified for 규식이 (Gyusik) by sinsan-develop, 2026-10-11 (see NOTICE.md).
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -39,18 +40,21 @@ export default class BrowserSolver {
 		}
 
 		if (window.Worker) {
-			const worker = new Worker(this._workerObjectURL);
+			// only the latest worker may report. Previously overlapping solves shared one timeout id, so an
+			// older worker's timer could survive and replace a newer result with a false "timeout" error.
+			this._abortWorker();
+			const worker = this._worker = new Worker(this._workerObjectURL);
 
 			worker.onmessage = (evt) => {
+				if (worker !== this._worker) { return; }
 				if (evt.data === "onload") {
 					this._startTime = Utils.now();
 					this._timeoutId = setTimeout(() => {
-						worker.terminate();
+						this._abortWorker();
 						this._onRegExComplete({id: "timeout"}, null, mode); // TODO: make this a warning, and return all results so far.
 					}, 250);
 				} else {
-					clearTimeout(this._timeoutId);
-					worker.terminate();
+					this._abortWorker();
 					this._onRegExComplete(evt.data.error, evt.data.matches, evt.data.mode);
 				}
 			};
@@ -82,6 +86,14 @@ export default class BrowserSolver {
 			// end share
 
 			this._onRegExComplete(error, matches, mode);
+		}
+	}
+
+	_abortWorker() {
+		clearTimeout(this._timeoutId);
+		if (this._worker) {
+			this._worker.terminate();
+			this._worker = null;
 		}
 	}
 

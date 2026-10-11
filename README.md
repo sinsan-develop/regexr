@@ -9,9 +9,11 @@
 
 1차 프로토타입을 만들고 있습니다.
 
-- 지금 되는 것: JavaScript 엔진으로 실시간 매칭, 하이라이트, 테스트, 도구(Replace·List·Details·Explain), 레퍼런스, 치트시트
+- 지금 되는 것: JavaScript와 PCRE2 엔진(둘 다 브라우저 안에서 실행)으로 실시간 매칭, 하이라이트, 테스트, 도구(Replace·List·Details·Explain), 레퍼런스, 치트시트
 - 외부로 나가는 요청이 없습니다. 분석 도구, 광고, 웹 글꼴, regexr.com 서버 호출을 모두 제거했습니다.
-- 준비 중인 것: PCRE2(WebAssembly), 기기 저장과 파일 내보내기, 한국어 화면과 설명, 작성 도우미, 선로도 시각화, Windows 설치형(Electron)
+- 준비 중인 것: 기기 저장과 파일 내보내기, 한국어 화면과 설명, 작성 도우미, 선로도 시각화, Windows 설치형(Electron)
+
+PCRE2는 WebAssembly(`libpcre2.wasm`)로 별도 작업자에서 실행됩니다. 배포할 때 `pcre-worker.js`와 `libpcre2.wasm`이 같은 폴더에 있어야 합니다(빌드가 알아서 넣습니다).
 
 ## 개발
 

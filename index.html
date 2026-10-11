@@ -15,6 +15,9 @@
 		onmessage=function(e){postMessage("onload");var t,s,n,a=e.data,i=a.text,d=a.tests,l=a.mode,r=new RegExp(a.pattern,a.flags),o=[];if("tests"===l)for(var g=0,x=d.length;g<x;g++){let e=d[g];i=e.text,r.lastIndex=0,t=r.exec(i),o[g]=t?{i:t.index,l:t[0].length,id:e.id}:{id:e.id}}else for(;t=r.exec(i);){s===r.lastIndex&&(n={id:"infinite",warning:!0},++r.lastIndex),s=r.lastIndex;var f=t.reduce(function(e,t,s){return(0===s||e.push({s:t}))&&e},[]);if(o.push({i:t.index,l:t[0].length,groups:f}),!r.global)break}postMessage({error:n,matches:o,mode:l})};
 	</script>
 
+	<!-- PCRE2 (WebAssembly) worker, built from ./dev/src/helpers/PcreWorker.js -->
+	<meta name="pcre-worker" content="<%= pcre_worker_file %>">
+
 	<link rel="stylesheet" type="text/css" href="<%= css_file %>">
 
 	<!-- basic meta tags -->
@@ -102,7 +105,7 @@
 							<li>아래 <b>도구</b>로 치환, 목록 추출, 그룹 확인, 해설을 볼 수 있습니다.</li>
 							<li><b>레퍼런스</b>와 <b>치트시트</b>에서 문법과 예제를 찾을 수 있습니다.</li>
 							<li>편집기에서 {{getCtrlKey()}}-Z / Y로 <b>되돌리기</b>와 <b>다시 실행</b>을 합니다.</li>
-							<li>인터넷 없이도 동작합니다. 지금은 <b>JavaScript</b> 엔진만 쓸 수 있고, PCRE2는 준비 중입니다.</li>
+							<li>인터넷 없이도 동작합니다. <b>JavaScript</b>와 <b>PCRE2</b> 엔진을 모두 브라우저 안에서 실행합니다.</li>
 						</ul>
 					</div>
 				</div>
