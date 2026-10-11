@@ -4,7 +4,7 @@ Based on RegExr, Copyright (C) 2017 gskinner.com, inc. Licensed under GPL-3.0 (s
 
 Runs JavaScript RegExp in a throw-away Web Worker so a catastrophic pattern can't freeze the page.
 Same interface and result shape as PcreSolver: solve(req, callback) with
-  req = {pattern, flags, text}; result = {time, error, matches:[{i, l, groups:[{s, i, l}]}]}.
+  req = {pattern, flags, text} or {pattern, flags, mode:"tests", tests:[{id,text}]}; result = {time, error, matches:[{i, l, groups:[{s, i, l}]}]}.
 Only the latest request reports; a request running longer than TIMEOUT is killed and reported as "timeout".
 */
 
@@ -14,6 +14,16 @@ onmessage = function (e) {
 	try { re = new RegExp(d.pattern, d.flags.indexOf("d") === -1 ? d.flags + "d" : d.flags); }
 	catch (err) { try { re = new RegExp(d.pattern, d.flags); } catch (err2) { postMessage({error: {id: "regexparse", message: String(err2.message || err2)}}); return; } }
 	postMessage("start");
+	if (d.mode === "tests") {
+		var res = [];
+		for (var t = 0; t < d.tests.length; t++) {
+			re.lastIndex = 0;
+			m = re.exec(d.tests[t].text);
+			res.push(m ? {id: d.tests[t].id, i: m.index, l: m[0].length} : {id: d.tests[t].id});
+		}
+		postMessage({matches: res});
+		return;
+	}
 	var global = re.global || re.sticky;
 	while ((m = re.exec(d.text))) {
 		var groups = [];
@@ -56,7 +66,7 @@ export default class JsSolver {
 			done({time: r.error && !r.error.warning ? null : performance.now() - start, error: r.error, matches: r.matches || []});
 		};
 		worker.onerror = (evt) => { evt.preventDefault(); done({error: {id: "regexparse", message: evt.message}, matches: []}); };
-		worker.postMessage({pattern: req.pattern, flags: req.flags, text: req.text});
+		worker.postMessage({pattern: req.pattern, flags: req.flags, text: req.text, mode: req.mode, tests: req.tests});
 	}
 
 	_kill() {

@@ -46,10 +46,23 @@
 			<div class="rr" id="rr"></div>
 		</div>
 		<div class="pane">
-			<div class="label">테스트 텍스트 <span class="count" id="count"></span></div>
+			<div class="label">
+				<span class="seg" role="tablist" aria-label="테스트 방식">
+					<button class="segb on" type="button" role="tab" data-view="text">테스트 텍스트</button>
+					<button class="segb" type="button" role="tab" data-view="tests">테스트 케이스 <span class="badge" id="bTests">0</span></button>
+				</span>
+				<span class="count" id="count"></span>
+			</div>
+			<div id="viewText">
 			<div class="editor text" id="txtEditor">
 				<pre class="mirror" id="txtMirror" aria-hidden="true"></pre>
 				<textarea id="text" spellcheck="false" aria-label="테스트 텍스트"></textarea>
+			</div>
+			</div>
+			<div id="viewTests" hidden>
+				<p class="hint">정규식이 <b>일치해야 하는</b> 예와 <b>일치하면 안 되는</b> 예를 적어 두면, 패턴을 고칠 때마다 바로 통과 여부를 알려줍니다.</p>
+				<div id="tests"></div>
+				<button type="button" class="add" id="addTest">+ 케이스 추가</button>
 			</div>
 			<div class="banner" id="nfd" hidden>
 				<span>자모가 분리된 한글(NFD)이 있습니다. Mac에서 복사한 글자는 이렇게 저장되어 <code>[가-힣]</code> 에 걸리지 않을 수 있습니다.</span>
