@@ -28,12 +28,19 @@ const SAMPLE = {
 	pattern: "^(010)-(\\d{4})-(\\d{4})$",
 	flags: "gm",
 	text: "010-1234-5678\n010-123-5678\n010-9876-5432\n연락처: 010-5555-0000",
-	engine: "js"
+	engine: "js",
+	view: "text",
+	tests: [
+		{id: 1, text: "010-1234-5678", expect: "match"},
+		{id: 2, text: "010-9876-5432", expect: "match"},
+		{id: 3, text: "010-123-5678", expect: "nomatch"},
+		{id: 4, text: "011-1234-5678", expect: "nomatch"}
+	]
 };
 
 let state = load();
 let solvers = {js: new JsSolver(), pcre: null};
-let model = null, rows = [], diags = [], result = null, hot = null, tab = "explain", runSeq = 0, timer = 0;
+let model = null, rows = [], diags = [], result = null, testRes = null, hot = null, tab = "explain", runSeq = 0, timer = 0;
 
 function load() {
 	try {
@@ -149,7 +156,8 @@ function paintStatus() {
 		"<span>실행 <b>" + (result && result.time != null ? result.time.toFixed(1) + "ms" : "-") + "</b></span>" +
 		"<span>엔진 <b>" + (state.engine === "js" ? "JavaScript" : "PCRE2") + "</b></span>" +
 		"<span>성능 <b class=\"" + (risky ? "bad" : "ok") + "\">" + (risky ? "백트래킹 위험 있음" : "위험 없음") + "</b></span>" +
-		"<span>오류·경고 <b>" + diags.filter((d) => d.level !== "tip").length + "건</b></span>";
+		"<span>오류·경고 <b>" + diags.filter((d) => d.level !== "tip").length + "건</b></span>" +
+		(state.tests.length ? (() => { let st = testStats(); return "<span>테스트 <b class=\"" + (st.known ? (st.pass === st.total ? "ok" : "bad") : "") + "\">" + (st.known ? st.pass + "/" + st.total + " 통과" : "-") + "</b></span>"; })() : "");
 	let box = $("runError");
 	let e = result && result.error;
 	if (e && !(e.id === "infinite" && false)) {
@@ -199,8 +207,10 @@ function run() {
 	let hasErr = model.errors.some((e) => !e.warning);
 	if (!state.pattern || hasErr) {
 		result = null;
+		testRes = null;
 		paintText();
 		paintStatus();
+		paintTestMarks();
 		return;
 	}
 	if (state.engine === "pcre" && !solvers.pcre) { solvers.pcre = new PcreSolver(); }
@@ -210,7 +220,80 @@ function run() {
 		result = r;
 		paintText();
 		paintStatus();
+		runTests(seq);
 	});
+}
+
+// ---------- test cases ----------
+
+// runs after the text run (the solvers handle one request at a time).
+function runTests(seq) {
+	if (!state.tests.length || !(result && !(result.error && !result.error.warning))) { testRes = null; paintTestMarks(); return; }
+	let req = {pattern: state.pattern, flags: state.flags, mode: "tests", text: "", tests: state.tests.map((t) => ({id: t.id, text: t.text})), tool: null};
+	solvers[state.engine].solve(req, (r) => {
+		if (seq !== runSeq) { return; }
+		testRes = r;
+		paintTestMarks();
+		paintStatus();
+	});
+}
+
+function testOutcome(t) {
+	if (!testRes || !testRes.matches || testRes.error && !testRes.error.warning) { return null; }
+	let r = testRes.matches.find((m) => m.id === t.id);
+	if (!r) { return null; }
+	let matched = r.i != null;
+	return {matched, pass: matched === (t.expect === "match")};
+}
+
+function testStats() {
+	let pass = 0, total = state.tests.length, known = true;
+	state.tests.forEach((t) => { let o = testOutcome(t); if (!o) { known = false; } else if (o.pass) { pass++; } });
+	return {pass, total, known};
+}
+
+function paintTests() {
+	let host = $("tests");
+	host.textContent = "";
+	state.tests.forEach((t, k) => {
+		let row = document.createElement("div");
+		row.className = "tcase";
+		row.dataset.id = t.id;
+		row.innerHTML = "<span class=\"mark\"></span><input type=\"text\" spellcheck=\"false\" aria-label=\"테스트 문자열 " + (k + 1) + "\"><select aria-label=\"기대 결과\"><option value=\"match\">일치해야 함</option><option value=\"nomatch\">일치하면 안 됨</option></select><button class=\"del\" type=\"button\" aria-label=\"삭제\">×</button><span class=\"why\" hidden></span>";
+		let input = row.querySelector("input"), sel = row.querySelector("select");
+		input.value = t.text;
+		sel.value = t.expect;
+		input.addEventListener("input", () => { t.text = input.value; save(); schedule(); });
+		sel.addEventListener("change", () => { t.expect = sel.value; save(); paintTestMarks(); });
+		row.querySelector(".del").onclick = () => { state.tests.splice(k, 1); save(); paintTests(); schedule(); };
+		host.appendChild(row);
+	});
+	paintTestMarks();
+}
+
+function paintTestMarks() {
+	state.tests.forEach((t) => {
+		let row = document.querySelector(".tcase[data-id=\"" + t.id + "\"]");
+		if (!row) { return; }
+		let o = testOutcome(t), why = row.querySelector(".why");
+		row.classList.toggle("pass", !!o && o.pass);
+		row.classList.toggle("fail", !!o && !o.pass);
+		row.querySelector(".mark").textContent = !o ? "" : o.pass ? "✓" : "✗";
+		why.hidden = !o || o.pass;
+		if (o && !o.pass) { why.textContent = t.expect === "match" ? "일치해야 하는데 일치하지 않았습니다." : "일치하면 안 되는데 일치했습니다."; }
+	});
+	let st = testStats(), b = $("bTests");
+	b.textContent = st.known ? st.pass + "/" + st.total : state.tests.length;
+	b.classList.toggle("ok", st.known && st.total > 0 && st.pass === st.total);
+	b.classList.toggle("bad", st.known && st.pass < st.total);
+}
+
+function showView(v) {
+	state.view = v;
+	$("viewText").hidden = v !== "text";
+	$("viewTests").hidden = v !== "tests";
+	document.querySelectorAll(".segb").forEach((b) => b.classList.toggle("on", b.dataset.view === v));
+	save();
 }
 
 function setPattern(p) { state.pattern = p; $("pattern").value = p; sizeAll(); save(); render(); }
@@ -232,6 +315,16 @@ $("engine").addEventListener("change", (e) => {
 	save();
 	render();
 });
+$("addTest").onclick = () => {
+	let id = state.tests.reduce((m, t) => Math.max(m, t.id), 0) + 1;
+	state.tests.push({id, text: "", expect: "match"});
+	save();
+	paintTests();
+	schedule();
+	let rows = document.querySelectorAll(".tcase input");
+	rows[rows.length - 1].focus();
+};
+document.querySelectorAll(".segb").forEach((b) => b.onclick = () => showView(b.dataset.view));
 $("nfdFix").onclick = () => { state.text = state.text.normalize("NFC"); $("text").value = state.text; save(); paintText(); schedule(); };
 document.querySelectorAll(".tab").forEach((b) => b.onclick = () => { tab = b.dataset.tab; paintSide(); });
 $("panel").addEventListener("click", (e) => {
@@ -258,5 +351,7 @@ syncScroll("text", "txtMirror");
 $("engine").value = state.engine;
 $("pattern").value = state.pattern;
 $("text").value = state.text;
+paintTests();
+showView(state.view);
 render();
-window.gyusik = {get state() { return state; }, get model() { return model; }, get result() { return result; }, get diags() { return diags; }};
+window.gyusik = {get state() { return state; }, get model() { return model; }, get result() { return result; }, get diags() { return diags; }, get testRes() { return testRes; }};

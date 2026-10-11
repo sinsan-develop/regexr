@@ -145,3 +145,23 @@ button { font: inherit; color: inherit; cursor: pointer; }
 	.side { position: static; max-height: none; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+/* view switch + test cases */
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.segb { border: 0; background: var(--paper); padding: 2px 12px; color: var(--ink-2); font-size: 12.5px; letter-spacing: 0; font-weight: 500; }
+.segb.on { background: var(--ink); color: var(--paper); }
+.segb .badge { margin-left: 4px; }
+.badge.ok { background: var(--ok-bg); color: var(--ok); } .badge.bad { background: var(--bad-bg); color: var(--bad); }
+#viewTests[hidden], #viewText[hidden] { display: none; }
+#viewTests { display: flex; flex-direction: column; gap: 6px; }
+#viewTests .hint { margin: 0; color: var(--ink-2); font-size: 13px; }
+.tcase { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto auto; gap: 8px; align-items: center; border: 1px solid var(--line); border-radius: 8px; padding: 4px 8px; }
+.tcase.pass { border-color: var(--ok); } .tcase.fail { border-color: var(--bad); background: var(--bad-bg); }
+.tcase input[type=text] { font: 14px var(--f-mono); border: 0; background: transparent; color: var(--ink); padding: 3px 2px; min-width: 0; outline: 0; }
+.tcase select { font: inherit; font-size: 12.5px; border: 1px solid var(--line); border-radius: 6px; background: var(--paper); color: var(--ink); padding: 1px 4px; }
+.tcase .mark { font-weight: 800; text-align: center; }
+.tcase.pass .mark { color: var(--ok); } .tcase.fail .mark { color: var(--bad); }
+.tcase .why { grid-column: 2 / 5; font-size: 12.5px; color: var(--bad); }
+.tcase .del { border: 0; background: none; color: var(--ink-2); padding: 0 6px; font-size: 16px; }
+.add { align-self: flex-start; border: 1.5px dashed var(--ink-2); border-radius: 6px; background: none; padding: 2px 12px; color: var(--ink-2); }
+.add:hover { border-color: var(--accent); color: var(--accent); }
