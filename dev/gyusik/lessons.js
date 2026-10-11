@@ -6,9 +6,11 @@ Lesson content (Korean). Plain words first, the technical term in parentheses.
 Each task: cases = strings the pattern must find (expect true) or must skip (expect false).
 A case "finds" a string when the pattern matches anywhere in it, like the workbench test cases.
 "examples" are shown as live railroad diagrams.
+A case may also carry "found": the pattern must then match exactly that text (first match), not just match somewhere.
+A task may carry "must": {re, msg}: the typed pattern has to contain syntax matching re (used for syntax-specific tasks).
 */
 
-const T = (text, expect) => ({text, expect});
+const T = (text, expect, found) => (found === undefined ? {text, expect} : {text, expect, found});
 
 export const LESSONS = [
 	{
@@ -101,6 +103,92 @@ export const LESSONS = [
 			{id: "l6t2", prompt: "\"ab\"가 한 번 이상 <b>반복되기만 하는</b> 줄을 찾으세요. 전체가 맞아야 합니다.", cases: [T("ab", true), T("abab", true), T("ababab", true), T("aabb", false), T("abb", false), T("", false)], hint: "^(ab)+$ 처럼 묶음 전체를 반복시킵니다.", solution: "^(ab)+$"},
 			{id: "l6t3", prompt: "\"cat\", \"cats\", \"dog\", \"dogs\" <b>정확히 그 단어</b>만 찾으세요. \"catdog\"은 건너뜁니다.", cases: [T("cat", true), T("cats", true), T("dog", true), T("dogs", true), T("catdog", false), T("bird", false)], hint: "^(cat|dog)s?$ 처럼 선택을 괄호로 묶고 전체를 ^ $ 로 감쌉니다.", solution: "^(cat|dog)s?$"}
 		],
-		next: "1~6강을 모두 마쳤습니다. 작업대에서 직접 패턴을 만들어 보세요."
+		next: "<b>많이 vs 적게</b>, 즉 수량자가 얼마나 잡을지를 배웁니다."
+	}
+	,
+	{
+		id: "l7", title: "많이 vs 적게", term: "탐욕적·게으른 수량자",
+		body: [
+			"<p>4강의 <code>+  *  {n,}</code> 는 <b>가능한 한 많이</b> 일치하려고 합니다. 이를 <b>탐욕적</b>(greedy)이라고 합니다. 그래서 <code>&lt;b&gt;.+&lt;/b&gt;</code> 를 \"&lt;b&gt;굵게&lt;/b&gt; 그리고 &lt;b&gt;기울임&lt;/b&gt;\"에 쓰면, 첫 &lt;b&gt;부터 <b>마지막</b> &lt;/b&gt;까지 통째로 잡습니다.</p>",
+			"<p>수량자 뒤에 <code>?</code> 를 붙이면 <b>가능한 한 적게</b> 일치하는 <b>게으른</b>(lazy) 수량자가 됩니다. <code>.+?</code> 는 뒤의 조건이 처음 맞는 곳에서 멈춥니다. 그래서 <code>&lt;b&gt;.+?&lt;/b&gt;</code> 는 &lt;b&gt;굵게&lt;/b&gt; 하나만 잡습니다.</p>",
+			"<ul><li><code>*?</code> <code>+?</code> <code>??</code> <code>{2,}?</code> 처럼 모든 수량자 뒤에 붙일 수 있습니다.</li><li>같은 뜻으로 <code>[^\"]*</code> 처럼 \"여는 기호가 아닌 것\"만 허용하는 방법도 있고, 이쪽이 더 빠르고 안전한 경우가 많습니다.</li></ul>",
+			"<p>이번 실습은 <b>무엇이 일치했는지</b>까지 확인합니다. 결과 줄에 일치한 부분이 표시됩니다.</p>"
+		],
+		examples: [{pattern: "<b>.+</b>", note: "많이: 마지막 </b>까지"}, {pattern: "<b>.+?</b>", note: "적게: 처음 </b>에서 멈춤"}],
+		tasks: [
+			{id: "l7t1", prompt: "첫 번째 <code>&lt;b&gt;…&lt;/b&gt;</code> 하나만 찾으세요. 두 번째 것까지 이어서 잡으면 안 됩니다.", cases: [T("<b>굵게</b> 그리고 <b>기울임</b>", true, "<b>굵게</b>"), T("<b>가</b><b>나</b><b>다</b>", true, "<b>가</b>")], hint: ".+ 뒤에 ? 를 붙여 게으르게 만듭니다.", solution: "<b>.+?</b>"},
+			{id: "l7t2", prompt: "큰따옴표로 감싼 첫 번째 말 하나만, 따옴표까지 포함해서 찾으세요.", cases: [T("그는 \"사과\"와 \"배\"를 샀다", true, "\"사과\""), T("\"a\" \"b\"", true, "\"a\"")], hint: "\".*?\" 처럼 게으르게 쓰거나 \"[^\"]*\" 로 따옴표가 아닌 글자만 허용합니다.", solution: "\".*?\""},
+			{id: "l7t3", prompt: "숫자가 이어져 있어도 <b>맨 앞 2개만</b> 찾으세요.", cases: [T("12345", true, "12"), T("9876", true, "98")], hint: "\\d{2,} 는 많이 잡습니다. 게으르게 만들거나 정확히 2개를 지정합니다.", solution: "\\d{2}"}
+		],
+		next: "일치하는 글자 자체가 아니라 <b>앞뒤 조건</b>만 보는 방법을 배웁니다."
+	},
+	{
+		id: "l8", title: "앞뒤 살피기", term: "전후방 탐색",
+		body: [
+			"<p>\"1000원\"에서 <b>숫자만</b> 찾고 싶은데 \"원\"은 결과에 넣고 싶지 않을 때가 있습니다. <b>앞뒤 살피기</b>는 글자를 소비하지 않고 \"이 자리 앞(뒤)에 무엇이 있는지\"만 확인합니다. 조건이 맞아도 그 글자는 결과에 포함되지 않습니다.</p>",
+			"<ul><li><code>(?=원)</code> <b>뒤에</b> \"원\"이 있어야 함 (앞보기)</li><li><code>(?!원)</code> 뒤에 \"원\"이 <b>없어야</b> 함</li><li><code>(?&lt;=\\$)</code> <b>앞에</b> \"$\"가 있어야 함 (뒤보기)</li><li><code>(?&lt;!\\$)</code> 앞에 \"$\"가 <b>없어야</b> 함</li></ul>",
+			"<p>예: <code>\\d+(?=원)</code> 은 \"1000원\"에서 <b>1000</b>만 잡습니다. \"1000달러\"는 잡지 않습니다.</p>",
+			"<p>모든 엔진이 지원하지만 <b>뒤보기</b>는 엔진마다 제한이 다릅니다(9강). 지원하지 않는 곳에서는 대신 그룹으로 감싸 꺼내 쓰는 방법을 씁니다.</p>"
+		],
+		examples: [{pattern: "\\d+(?=원)", note: "뒤에 원이 있는 숫자"}, {pattern: "(?<=\\$)\\d+", note: "앞에 $가 있는 숫자"}],
+		tasks: [
+			{id: "l8t1", prompt: "\"원\"이 뒤에 붙은 숫자만, <b>숫자만</b> 찾으세요. \"원\"은 결과에 넣지 않습니다.", cases: [T("가격은 1000원입니다", true, "1000"), T("500원", true, "500"), T("30달러", false)], hint: "\\d+ 뒤에 (?=원) 을 붙입니다.", solution: "\\d+(?=원)"},
+			{id: "l8t2", prompt: "\"$\" 바로 뒤의 숫자만 찾으세요. \"$\"는 결과에 넣지 않습니다.", cases: [T("cost $42", true, "42"), T("cost 42", false), T("$7 and $15", true, "7")], hint: "앞보기는 (?<=...) 입니다. $ 는 \\$ 로 씁니다.", solution: "(?<=\\$)\\d+"},
+			{id: "l8t3", prompt: "\"foo\"를 찾되, 바로 뒤에 \"bar\"가 이어지는 것은 건너뛰세요.", cases: [T("foo", true, "foo"), T("foobaz", true, "foo"), T("foobar", false)], hint: "(?!bar) 는 \"뒤에 bar가 없어야 함\"입니다.", solution: "foo(?!bar)"}
+		],
+		next: "같은 패턴도 <b>엔진마다 다르게</b> 동작할 수 있습니다."
+	},
+	{
+		id: "l9", title: "엔진마다 다른 점", term: "JavaScript · PCRE2 · Python",
+		body: [
+			"<p>정규식의 기본 문법은 어디서나 비슷하지만, 프로그래밍 언어와 도구마다 <b>구현(엔진)</b>이 달라서 세부가 다릅니다. 규식이는 <b>JavaScript</b>와 <b>PCRE2</b>를 지원하고, 상단의 엔진 선택으로 바꿔 가며 같은 패턴을 시험할 수 있습니다.</p>",
+			"<table class=\"lntbl\"><tr><th>항목</th><th>JavaScript</th><th>PCRE2 (PHP, 여러 도구)</th><th>Python</th></tr>" +
+			"<tr><td>이름 붙은 그룹</td><td><code>(?&lt;year&gt;\\d{4})</code></td><td><code>(?&lt;year&gt;…)</code> 와 <code>(?P&lt;year&gt;…)</code> 둘 다</td><td><code>(?P&lt;year&gt;…)</code></td></tr>" +
+			"<tr><td>소유 수량자·원자 그룹</td><td>없음</td><td><code>a++</code> <code>(?&gt;…)</code></td><td>3.11부터</td></tr>" +
+			"<tr><td>플래그 쓰는 법</td><td><code>/패턴/gi</code></td><td>코드의 옵션 또는 <code>(?i)</code></td><td><code>re.I</code> 또는 <code>(?i)</code></td></tr>" +
+			"<tr><td><code>\\d</code> 가 뜻하는 것</td><td>0~9만</td><td>기본은 0~9 (옵션으로 확장)</td><td>다른 나라 숫자도 포함</td></tr>" +
+			"<tr><td>뒤보기 <code>(?&lt;=…)</code></td><td>길이 제한 없음</td><td>길이가 정해져야 함</td><td>길이가 정해져야 함</td></tr></table>",
+			"<p><b>이 표는 큰 줄기만 보여줍니다.</b> 버전에 따라 달라질 수 있으니, 중요한 패턴은 실제로 쓸 엔진에서 꼭 시험하세요.</p>",
+			"<p>패턴을 옮길 때 가장 자주 부딪히는 것은 <b>이름 붙은 그룹의 표기</b>입니다. 작업대는 JavaScript에서 <code>(?P&lt;이름&gt;…)</code> 를 쓰면 오류로 알려주고 고치는 방법을 안내합니다.</p>"
+		],
+		examples: [{pattern: "(?<year>\\d{4})-(?<month>\\d{2})", note: "JavaScript 방식의 이름 붙은 그룹"}],
+		tasks: [
+			{id: "l9t1", prompt: "\"2026-10\"에서 연도와 월을 <b>이름 붙은 그룹</b>(<code>year</code>, <code>month</code>)으로 잡으세요. JavaScript 문법으로 쓰세요.", cases: [T("2026-10", true, "2026-10"), T("26-10", false)], must: {re: "\\(\\?<year>\\\\d\\{4\\}\\)|\\(\\?<year>", msg: "(?<year>…) 처럼 이름 붙은 그룹을 쓰세요."}, hint: "(?<year>\\d{4})-(?<month>\\d{2}) 형태입니다. P는 붙이지 않습니다.", solution: "(?<year>\\d{4})-(?<month>\\d{2})"},
+			{id: "l9t2", prompt: "JavaScript에서 <code>\\d</code> 는 0~9만 뜻합니다. 아라비아 숫자 \"٣٤٥\"는 건너뛰고 \"345\"는 찾으세요.", cases: [T("345", true, "345"), T("٣٤٥", false)], hint: "\\d+ 로 충분합니다. (Python에서는 결과가 다릅니다.)", solution: "\\d+"}
+		],
+		next: "일치하지 않는 입력에서 <b>매우 느려지는</b> 패턴을 알아봅니다."
+	},
+	{
+		id: "l10", title: "느려지는 패턴", term: "재앙적 백트래킹 (ReDoS)",
+		body: [
+			"<p>정규식 엔진은 일치하지 않으면 <b>다른 경우를 되돌아가서</b>(백트래킹) 다시 시도합니다. 대부분은 순식간이지만, 어떤 패턴은 일치하지 않는 입력에서 경우의 수가 <b>폭발적으로</b> 늘어 몇 초, 몇 분이 걸립니다.</p>",
+			"<p>가장 흔한 원인은 <b>반복 안에 반복</b>입니다. <code>(a+)+$</code> 는 \"aaaa…a\"가 끝까지 맞을 때는 빠르지만, 맨 끝에 \"b\"가 하나 붙으면 <code>a</code> 를 나누는 방법을 전부 시도하느라 입력 길이가 늘수록 시간이 2배씩 늘어납니다.</p>",
+			"<p>서버가 사용자 입력을 이런 패턴으로 검사하면 요청 하나로 서버를 멈출 수 있습니다. 이것을 <b>ReDoS</b>(정규식 서비스 거부 공격)라고 부릅니다.</p>",
+			"<p><b>피하는 방법</b></p><ul><li>같은 글자를 겹쳐서 반복하지 않기: <code>(a+)+</code> → <code>a+</code></li><li>\"아무 글자\" 대신 가능한 글자만: <code>.*</code> → <code>[^,]*</code></li><li><code>(a|a)*</code>, <code>(a|aa)+</code> 처럼 겹치는 선택지 피하기</li><li>입력 길이를 먼저 제한하기</li></ul>",
+			"<p>작업대의 진단 탭은 반복 안의 반복을 찾아 \"느려질 수 있습니다\"라고 알려줍니다. 규식이는 너무 오래 걸리면 실행을 중단해서 화면이 멈추지 않습니다. 아래 실습에서 이를 직접 확인할 수 있습니다.</p>"
+		],
+		examples: [{pattern: "(a+)+$", note: "반복 안의 반복: 위험"}, {pattern: "a+$", note: "같은 뜻, 안전"}],
+		tasks: [
+			{id: "l10t1", prompt: "\"a\"로 <b>끝나는</b> 줄을 찾으세요(a가 하나 이상 이어진 채로 끝). <code>(a+)+$</code> 는 같은 뜻이지만 마지막 줄에서 너무 오래 걸립니다. <b>빠른 패턴</b>으로 바꿔 보세요.", cases: [T("aaaa", true), T("baaa", true), T("aaab", false), T("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaab", false)], hint: "반복 안의 반복이 필요 없습니다. a+ 에 $ 만 붙이면 됩니다.", solution: "a+$"},
+			{id: "l10t2", prompt: "쉼표가 아닌 글자가 이어진 한 칸(필드)을 찾되, 쉼표가 없는 긴 줄에서도 빨라야 합니다.", cases: [T("가,나,다", true, "가"), T(",,,", false), T("x".repeat(40), true, "x".repeat(40))], hint: "[^,]+ 는 \"쉼표가 아닌 글자\"만 허용해서 되돌아갈 일이 거의 없습니다.", solution: "[^,]+"}
+		],
+		next: "마지막으로, <b>한글</b>을 정확하게 다루는 방법을 배웁니다."
+	},
+	{
+		id: "l11", title: "한글 다루기", term: "한글 범위 · 자모 · 초성",
+		body: [
+			"<p>한글은 정규식에서 몇 가지 알아둘 점이 있습니다. 규식이를 만든 이유이기도 합니다.</p>",
+			"<p><b>1) 완성된 글자는 <code>[가-힣]</code></b> 입니다. \"가\"부터 \"힣\"까지 완성형 한글 11,172자를 모두 포함합니다. 끝을 \"힝\"으로 쓰는 실수가 흔한데, 그러면 일부 글자가 빠집니다.</p>",
+			"<p><b>2) 자음·모음 낱자는 별도</b>입니다. \"ㄱ\", \"ㅏ\" 같은 낱자는 <code>[ㄱ-ㅎ]</code> (자음), <code>[ㅏ-ㅣ]</code> (모음)으로 따로 씁니다. <code>[가-힣]</code> 에는 들어 있지 않아서, \"ㅎㅎㅎ\"는 한글 이름 검사를 통과하지 못합니다. 초성 검색(예: \"ㅎㄱㄷ\")은 <code>[ㄱ-ㅎ]</code> 를 씁니다.</p>",
+			"<p><b>3) JavaScript의 <code>\\w</code> 와 <code>\\b</code> 는 한글을 글자로 보지 않습니다.</b> <code>\\w</code> 는 영문·숫자·밑줄뿐이라, \"한글abc\"에서 <code>\\w+</code> 는 abc만 잡습니다. 한글까지 단어로 보려면 <code>[\\w가-힣]</code> 처럼 직접 범위를 씁니다.</p>",
+			"<p><b>4) 같은 \"한\"이 두 가지로 저장될 수 있습니다.</b> 완성형(NFC)은 글자 하나, 자모 분리형(NFD, Mac에서 파일 이름 등)은 \"ㅎ+ㅏ+ㄴ\" 세 개입니다. 눈에는 같아 보여도 <code>[가-힣]</code> 에 걸리지 않습니다. 작업대는 테스트 텍스트에 자모 분리 한글이 있으면 알려주고 한 번에 바꿔 줍니다.</p>"
+		],
+		examples: [{pattern: "^[가-힣]{2,5}$", note: "한글 이름 2~5자"}, {pattern: "^[ㄱ-ㅎ]+$", note: "초성만"}],
+		tasks: [
+			{id: "l11t1", prompt: "<b>완성된 한글로만</b> 이루어진 2~5글자 이름만 찾으세요. 영문, 숫자, 자음·모음 낱자가 섞이면 건너뜁니다.", cases: [T("홍길동", true), T("김철수", true), T("Hong", false), T("홍길동1", false), T("ㅎㅎ", false), T("홍", false)], hint: "^[가-힣]{2,5}$ 로 전체를 감쌉니다.", solution: "^[가-힣]{2,5}$"},
+			{id: "l11t2", prompt: "<b>초성(자음)만</b> 입력한 줄만 찾으세요. 완성된 글자나 모음이 섞이면 건너뜁니다.", cases: [T("ㅎㄱㄷ", true), T("ㄱㄴ", true), T("홍길동", false), T("ㅏㅓ", false), T("ㄱa", false)], hint: "^[ㄱ-ㅎ]+$ 입니다.", solution: "^[ㄱ-ㅎ]+$"},
+			{id: "l11t3", prompt: "한글이 섞인 문장에서 <b>영문 단어만</b> 찾으세요.", cases: [T("한글 abc 입니다", true, "abc"), T("이메일은 hello 입니다", true, "hello"), T("전부 한글", false)], hint: "[A-Za-z]+ 처럼 영문 범위를 씁니다.", solution: "[A-Za-z]+"}
+		],
+		next: "1~11강을 모두 마쳤습니다. 작업대에서 직접 패턴을 만들어 보세요."
 	}
 ];
