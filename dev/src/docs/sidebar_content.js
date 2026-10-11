@@ -1,6 +1,7 @@
 /*
 RegExr: Learn, Build, & Test RegEx
 Copyright (C) 2017  gskinner.com, inc.
+Modified for 규식이 (Gyusik) by sinsan-develop, 2026-10-11 (see NOTICE.md).
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -76,14 +77,14 @@ home.kids = [
 	{
 	label: "Help",
 	id: "help",
-	desc: "Help for the RegExr application. See the <b>RegEx Reference</b> for help with Regular Expressions.",
+	desc: "규식이 사용법입니다. 정규식 문법은 <b>RegEx Reference</b>를 보세요.",
 	kids: [
 
 		{
 		label:"About",
-		desc:"RegExr v<%= build_version %> (<%= build_date %>)."+
-			"<p>Created by <a href='http://twitter.com/gskinner/' target='_blank'>Grant Skinner</a> and the <a href='http://gskinner.com/' target='_blank'>gskinner</a> team, using the <a href='http://createjs.com/' target='_blank'>CreateJS</a> & <a href='http://codemirror.net/' target='_blank'>CodeMirror</a> libraries.</p>"+
-			"<p>You can provide feedback or log bugs on <a href='http://github.com/gskinner/regexr/' target='_blank'>GitHub</a>.</p>"
+		desc:"규식이 v<%= build_version %> (<%= build_date %>)."+
+			"<p>규식이는 <a href='https://github.com/gskinner/regexr' target='_blank'>RegExr</a>를 바탕으로 만들었습니다. RegExr는 <a href='http://twitter.com/gskinner/' target='_blank'>Grant Skinner</a>와 <a href='http://gskinner.com/' target='_blank'>gskinner</a> 팀이 <a href='http://createjs.com/' target='_blank'>CreateJS</a>와 <a href='http://codemirror.net/' target='_blank'>CodeMirror</a>로 만들었습니다.</p>"+
+			"<p>규식이는 GNU GPL 3.0 라이선스를 따릅니다. 소스 코드와 버그 신고는 <a href='https://github.com/sinsan-develop/regexr' target='_blank'>GitHub</a>에 있습니다.</p>"
 		},
 		{
 		label:"Getting started",
@@ -167,7 +168,7 @@ home.kids = [
 		id: "engine",
 		label:"RegEx engines",
 		desc:"While the core feature set of regular expressions is fairly consistent, different implementations (ex. Perl vs Java) may have different features or behaviours."+
-			 "<p>RegExr currently supports JavaScript RegExp executed in your browser and PCRE via PHP.</p>"+
+			 "<p>규식이는 지금 브라우저에서 실행하는 JavaScript RegExp를 지원합니다. PCRE2는 서버 없이 실행하는 방식으로 준비 중입니다.</p>"+
 			 "<p>You can switch engines using the dropdown in Expression.</p>",
 		kids: [
 			{
@@ -197,7 +198,7 @@ home.kids = [
 			"<li><code>tool</code> - sets the tool (replace, list, details, or explain)</li>"+
 			"<li><code>input</code> - populates the tool input field</li>"+
 			"</ul></p>"+
-			"Ex. <a href='http://regexr.com/?expression=/./g&text=test'>regexr.com/?expression=/./g&text=test</a>"
+			"Ex. <a href='https://gyusik.sinsan.kr/?expression=/./g&text=test'>gyusik.sinsan.kr/?expression=/./g&text=test</a>"
 		}
 	]
 	}

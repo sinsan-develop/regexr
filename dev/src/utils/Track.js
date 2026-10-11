@@ -1,6 +1,7 @@
 /*
 RegExr: Learn, Build, & Test RegEx
 Copyright (C) 2017  gskinner.com, inc.
+Modified for 규식이 (Gyusik) by sinsan-develop, 2026-10-11 (see NOTICE.md).
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -16,21 +17,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+// 규식이 sends no analytics: these calls are kept as no-ops so existing callers still work.
 let Track = {};
 export default Track;
 
-Track.GA_ID = "UA-3579542-6";
+Track.page = function(path) {};
 
-Track.page = function(path) {
-	gtag("config", Track.GA_ID, {"page_path": "/"+path});
-};
-
-// https://developers.google.com/analytics/devguides/collection/gtagjs/events
-Track.event = function(name, category, label) {
-	let o = {};
-	if (category) { o.event_category = category; }
-	if (label) { o.event_label = label; }
-	gtag("event", name, o);
-}
+Track.event = function(name, category, label) {};
 
 

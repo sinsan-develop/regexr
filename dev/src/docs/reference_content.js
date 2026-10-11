@@ -1,6 +1,7 @@
 /*
 RegExr: Learn, Build, & Test RegEx
 Copyright (C) 2017  gskinner.com, inc.
+Modified for 규식이 (Gyusik) by sinsan-develop, 2026-10-11 (see NOTICE.md).
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -777,6 +778,7 @@ o.errors = {
 	fwdslash:"Unescaped forward slash. This may cause issues if copying/pasting this expression into code.",
 	esccharbad:"Invalid escape sequence.",
 	servercomm:"An error occurred while communicating with the server.",
+	offline:"이 기능은 아직 쓸 수 없습니다. 규식이는 지금 서버 없이 동작하며, 이 기능은 준비 중입니다.",
 	extraelse:"Extra else in conditional group.",
 	unmatchedref:"Reference to non-existent group \"{{name}}\".",
 	modebad:"Unrecognized mode flag \"<code>{{errmode}}</code>\".",

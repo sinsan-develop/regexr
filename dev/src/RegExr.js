@@ -1,6 +1,7 @@
 /*
 RegExr: Learn, Build, & Test RegEx
 Copyright (C) 2017  gskinner.com, inc.
+Modified for 규식이 (Gyusik) by sinsan-develop, 2026-10-11 (see NOTICE.md).
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -71,15 +72,6 @@ export default class RegExr extends EventDispatcher {
 
 		window.onbeforeunload = (e) => this.unsaved ? "You have unsaved changes." : null;
 		this.resetUnsaved();
-
-		setTimeout(() => this._initAds(), 100);
-	}
-
-	_initAds() {
-		_native && _native.init("CK7D65QM", { // "CK7D65QM" use "CK7D4KQE" to test Carbon ads
-			carbonZoneKey: 'CK7DPKQU',
-			targetClass: 'native-js'
-		});
 	}
 
 	_localInit() {
