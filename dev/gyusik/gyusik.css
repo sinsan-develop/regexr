@@ -274,3 +274,19 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .toolout.empty { color: var(--ink-2); font-family: var(--f-body); }
 .segb { white-space: nowrap; }
 .label .seg { flex-wrap: wrap; }
+
+/* reference + lesson links */
+.lnk { border: 0; background: none; color: var(--accent); font-size: 12px; padding: 0 0 0 6px; text-decoration: underline; white-space: nowrap; }
+.lnk:hover { color: var(--ink); }
+.refsearch { font: 14px var(--f-body); border: 1.5px solid var(--line); border-radius: 8px; background: var(--board); color: var(--ink); padding: 5px 10px; width: 100%; }
+.refsearch:focus { border-color: var(--accent); outline: 0; }
+.refgrp { font-size: 12px; letter-spacing: .06em; color: var(--ink-2); font-weight: 700; padding: 8px 2px 2px; }
+.refrow { border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; display: grid; gap: 2px; }
+.refrow .hd { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
+.refrow .hd code { font-weight: 600; }
+.refrow p { margin: 0; font-size: 13.5px; }
+.refrow .note { color: var(--ink-2); font-size: 12.5px; }
+.refrow .ex { font-size: 12.5px; color: var(--ink-2); }
+.refrow .acts { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.refrow .acts .send { font-size: 12px; padding: 0 8px; }
+.engbad { font-size: 11.5px; padding: 0 7px; border-radius: 999px; background: var(--warn-bg); color: var(--warn); }

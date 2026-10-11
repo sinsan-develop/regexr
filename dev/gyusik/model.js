@@ -9,6 +9,7 @@ All positions (i, end) are indexes into the pattern string WITHOUT the surroundi
 
 import ExpressionLexer from "../src/ExpressionLexer.js";
 import profiles from "../src/profiles/profiles.js";
+import {lessonFor} from "./reference.js";
 
 const lexer = new ExpressionLexer();
 
@@ -230,13 +231,13 @@ export function explainRows(model, flagMap) {
 	let walk = (n, depth) => {
 		let code = model.pattern.substring(n.i, n.end);
 		if (n.kind === "group") {
-			rows.push({depth, code: model.pattern.substr(n.i, n.openLen) + "…)", ko: groupLabel(n), i: n.i, end: n.end, group: n.num});
+			rows.push({depth, code: model.pattern.substr(n.i, n.openLen) + "…)", ko: groupLabel(n), i: n.i, end: n.end, group: n.num, lesson: lessonFor("group", null, n.gtype)});
 			walkAlt(n.body, depth + 1);
 		} else if (n.kind === "quant" && n.node.kind === "group") {
-			rows.push({depth, code: code.length > 14 ? code.slice(0, 12) + "…" : code, ko: groupLabel(n.node) + " — " + quantKo(n, flagMap), i: n.i, end: n.end, group: n.node.num});
+			rows.push({depth, code: code.length > 14 ? code.slice(0, 12) + "…" : code, ko: groupLabel(n.node) + " — " + quantKo(n, flagMap), i: n.i, end: n.end, group: n.node.num, lesson: n.lazy ? "l7" : lessonFor("group", null, n.node.gtype)});
 			walkAlt(n.node.body, depth + 1);
 		} else {
-			rows.push({depth, code, ko: nodeKo(n, flagMap), i: n.i, end: n.end, group: null});
+			rows.push({depth, code, ko: nodeKo(n, flagMap), i: n.i, end: n.end, group: null, lesson: n.kind === "quant" && n.lazy ? "l7" : lessonFor(n.kind, n.type, n.gtype)});
 		}
 	};
 	walkAlt(model.ast, 0);

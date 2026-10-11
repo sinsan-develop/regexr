@@ -95,5 +95,5 @@ export function initLearn(ctx) {
 		if (prog.done[t.id]) { box.classList.add("pass"); box.querySelector(".taskdone").hidden = false; }
 	}
 
-	return {show};
+	return {show, goto: (id) => { let k = LESSONS.findIndex((l) => l.id === id); if (k !== -1) { prog.cur = k; save(); } show(); }};
 }

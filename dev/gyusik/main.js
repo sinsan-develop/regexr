@@ -14,6 +14,7 @@ import JsSolver from "./JsSolver.js";
 import {generate} from "./generate.js";
 import {initAi} from "./aiui.js";
 import {initLearn} from "./learn.js";
+import {REF_GROUPS} from "./reference.js";
 import {listPatterns, getPattern, savePattern, deletePattern, exportJson, importJson} from "./saved.js";
 import PcreSolver from "../src/helpers/PcreSolver.js";
 
@@ -127,7 +128,7 @@ function paintFlags() {
 function paintExplain() {
 	let h = "";
 	for (let r of rows) {
-		h += "<div class=\"row" + (r.plain ? " plain" : "") + "\" style=\"--d:" + r.depth + "\" data-i=\"" + r.i + "\" data-end=\"" + r.end + "\"" + (r.group ? " data-group=\"" + r.group + "\"" : "") + "><code class=\"" + (r.group ? "g" + (((r.group - 1) % 6) + 1) : "") + "\">" + esc(r.code) + "</code><span>" + esc(r.ko) + "</span></div>";
+		h += "<div class=\"row" + (r.plain ? " plain" : "") + "\" style=\"--d:" + r.depth + "\" data-i=\"" + r.i + "\" data-end=\"" + r.end + "\"" + (r.group ? " data-group=\"" + r.group + "\"" : "") + "><code class=\"" + (r.group ? "g" + (((r.group - 1) % 6) + 1) : "") + "\">" + esc(r.code) + "</code><span>" + esc(r.ko) + (r.lesson ? "<button type=\"button\" class=\"lnk\" data-lesson=\"" + r.lesson + "\">" + r.lesson.slice(1) + "강 →</button>" : "") + "</span></div>";
 	}
 	return h || "<p class=\"empty\">정규식을 입력하면 토큰마다 한국어 풀이가 나옵니다.</p>";
 }
@@ -144,11 +145,38 @@ function paintDiag(levels) {
 	}).join("");
 }
 
+// ---------- reference tab ----------
+
+let refQuery = "";
+
+function refHtml(q) {
+	let any = false, h = REF_GROUPS.map((g) => {
+		let items = g.items.filter((it) => !q || (it.s + " " + it.name + " " + it.desc + " " + (it.note || "")).toLowerCase().includes(q));
+		if (!items.length) { return ""; }
+		any = true;
+		return "<div class=\"refgrp\">" + esc(g.title) + "</div>" + items.map((it) => {
+			let bad = (it.js === false ? "<span class=\"engbad\">JavaScript 불가</span>" : "") + (it.pcre === false ? "<span class=\"engbad\">PCRE2 불가</span>" : "");
+			return "<div class=\"refrow\"><div class=\"hd\"><code>" + esc(it.s) + "</code><b>" + esc(it.name) + "</b>" + bad + "</div><p>" + esc(it.desc) + "</p>" +
+				(it.note ? "<p class=\"note\">" + esc(it.note) + "</p>" : "") +
+				(it.ex ? "<p class=\"ex\">예: <code>" + esc(it.ex[0]) + "</code> → " + esc(it.ex[1]) + "</p>" : "") +
+				"<div class=\"acts\"><button type=\"button\" class=\"send\" data-ins=\"" + esc(it.s.split(/  /)[0]) + "\">패턴 끝에 붙이기</button>" + (it.lesson ? "<button type=\"button\" class=\"lnk\" data-lesson=\"" + it.lesson + "\">" + it.lesson.slice(1) + "강에서 배우기 →</button>" : "") + "</div></div>";
+		}).join("");
+	}).join("");
+	return any ? h : "<p class=\"empty\">찾는 항목이 없습니다.</p>";
+}
+
+function paintRef() {
+	$("panel").innerHTML = "<input id=\"refSearch\" class=\"refsearch\" type=\"search\" placeholder=\"기호나 이름으로 검색 (예: 반복, ?, 한글)\" aria-label=\"레퍼런스 검색\"><div id=\"refList\"></div>";
+	$("refSearch").value = refQuery;
+	$("refList").innerHTML = refHtml(refQuery.trim().toLowerCase());
+	$("refSearch").addEventListener("input", () => { refQuery = $("refSearch").value; $("refList").innerHTML = refHtml(refQuery.trim().toLowerCase()); });
+}
+
 function paintSide() {
 	$("bDiag").textContent = diags.filter((d) => d.level !== "tip").length;
 	$("bTips").textContent = diags.filter((d) => d.level === "tip").length;
 	$("bDiag").classList.toggle("warn", diags.some((d) => d.level !== "tip"));
-	$("panel").innerHTML = tab === "explain" ? paintExplain() : paintDiag(tab === "diag" ? ["error", "warn"] : ["tip"]);
+	if (tab === "ref") { paintRef(); } else { $("panel").innerHTML = tab === "explain" ? paintExplain() : paintDiag(tab === "diag" ? ["error", "warn"] : ["tip"]); }
 	document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("on", t.dataset.tab === tab));
 	applyHot();
 }
@@ -384,6 +412,10 @@ document.querySelectorAll(".segb").forEach((b) => b.onclick = () => showView(b.d
 $("nfdFix").onclick = () => { state.text = state.text.normalize("NFC"); $("text").value = state.text; save(); paintText(); schedule(); };
 document.querySelectorAll(".tab").forEach((b) => b.onclick = () => { tab = b.dataset.tab; paintSide(); });
 $("panel").addEventListener("click", (e) => {
+	let ins = e.target.closest("[data-ins]");
+	if (ins) { setPattern(state.pattern + ins.dataset.ins); return; }
+	let les = e.target.closest("[data-lesson]");
+	if (les) { setMode("learn"); learn.goto(les.dataset.lesson); return; }
 	let b = e.target.closest("[data-fix]");
 	if (!b) { return; }
 	let f = diags[+b.dataset.fix].fix;
