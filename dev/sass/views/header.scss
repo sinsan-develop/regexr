@@ -17,6 +17,22 @@
 		height: 1.5em;
 	}
 
+	// 규식이: text wordmark instead of the RegExr logo.
+	.logo.wordmark {
+		width: auto;
+		height: auto;
+		margin-top: 0;
+		font-size: 1.25rem;
+		font-weight: bold;
+		letter-spacing: 0.02em;
+		white-space: nowrap;
+	}
+
+	// 규식이: no account server yet, so sign-in is hidden.
+	.etc .signin {
+		display: none;
+	}
+
 	.settings {
 		@extend %link;
 		color: $theme-color;

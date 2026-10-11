@@ -1,6 +1,7 @@
 /*
 RegExr: Learn, Build, & Test RegEx
 Copyright (C) 2017  gskinner.com, inc.
+Modified for 규식이 (Gyusik) by sinsan-develop, 2026-10-11 (see NOTICE.md).
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,7 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import "../lib/codemirror.js";
 import "../lib/clipboard.js";
-import "../lib/native.js";
 import RegExr from "./RegExr";
 
 let app = new RegExr();

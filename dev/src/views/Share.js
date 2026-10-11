@@ -1,6 +1,7 @@
 /*
 RegExr: Learn, Build, & Test RegEx
 Copyright (C) 2017  gskinner.com, inc.
+Modified for 규식이 (Gyusik) by sinsan-develop, 2026-10-11 (see NOTICE.md).
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -383,6 +384,9 @@ export default class Share extends EventDispatcher {
 	}
 
 	_getErrMsg(err) {
-		return "<span class='error'>ERROR:</span> "+app.reference.getError("servercomm");
+		// show the actual reason (e.g. no server yet); fall back to the generic server error.
+		// (getError expects an {id} object; the original passed a bare string and showed "no docs".)
+		let msg = (err && err !== "servercomm") ? err : app.reference.getError({id:"servercomm"});
+		return "<span class='error'>ERROR:</span> "+msg;
 	}
 }

@@ -3,8 +3,8 @@ const gulp = require("gulp");
 const inject = require("gulp-inject");
 const rename = require("gulp-rename");
 const template = require("gulp-template");
-const sass = require("gulp-sass");
-sass.compiler = require("sass");
+// gulp-sass 5 takes the compiler explicitly (gulp-sass 4 pulled in node-sass, which no longer builds on current Node).
+const sass = require("gulp-sass")(require("sass"));
 const cleanCSS = require("gulp-clean-css");
 const htmlmin = require("gulp-htmlmin");
 const svgstore = require("gulp-svgstore");
@@ -59,6 +59,8 @@ const serverCopyAndWatchGlob = [
 gulp.task("serve", () => {
 	browser({
 		server: { baseDir: "./deploy/" },
+		open: false,
+		ui: false,
 	});
 });
 

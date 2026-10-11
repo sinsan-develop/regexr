@@ -1,30 +1,25 @@
 <!DOCTYPE html>
-<html>
-<head lang="en">
+<!--
+	규식이 (Gyusik) - https://github.com/sinsan-develop/regexr
+	Based on RegExr, Copyright (C) 2017 gskinner.com, inc. Licensed under GPL-3.0.
+	Modified by sinsan-develop, 2026-10-11: rebranded as 규식이, removed analytics, ads,
+	web fonts and calls to the regexr.com server. See NOTICE.md.
+-->
+<html lang="ko">
+<head>
 	<meta charset="UTF-8">
-	<title>RegExr: Learn, Build, &amp; Test RegEx</title>
-
-	<!-- Google tag (gtag.js) -->
-	<script async src="https://www.googletagmanager.com/gtag/js?id=G-FS551ZDYMX"></script>
-	<script>
-		window.dataLayer = window.dataLayer || [];
-		function gtag(){dataLayer.push(arguments);}
-		gtag('js', new Date());
-
-		gtag('config', 'G-FS551ZDYMX');
-	</script>
+	<title>규식이: 정규식 배우기, 만들기, 테스트</title>
 
 	<!-- source for this is in ./assets/workers/RegExWorker.js -->
 	<script id="regexWorker" type="javascript/worker">
 		onmessage=function(e){postMessage("onload");var t,s,n,a=e.data,i=a.text,d=a.tests,l=a.mode,r=new RegExp(a.pattern,a.flags),o=[];if("tests"===l)for(var g=0,x=d.length;g<x;g++){let e=d[g];i=e.text,r.lastIndex=0,t=r.exec(i),o[g]=t?{i:t.index,l:t[0].length,id:e.id}:{id:e.id}}else for(;t=r.exec(i);){s===r.lastIndex&&(n={id:"infinite",warning:!0},++r.lastIndex),s=r.lastIndex;var f=t.reduce(function(e,t,s){return(0===s||e.push({s:t}))&&e},[]);if(o.push({i:t.index,l:t[0].length,groups:f}),!r.global)break}postMessage({error:n,matches:o,mode:l})};
 	</script>
 
-	<link href="https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&family=Source+Code+Pro:wght@200;400;700&display=swap" rel="stylesheet">
 	<link rel="stylesheet" type="text/css" href="<%= css_file %>">
 
 	<!-- basic meta tags -->
-	<meta name="title" content="RegExr: Learn, Build, & Test RegEx" />
-	<meta name="description" content="Regular expression tester with syntax highlighting, PHP / PCRE & JS Support, contextual help, cheat sheet, reference, and searchable community patterns." />
+	<meta name="title" content="규식이: 정규식 배우기, 만들기, 테스트" />
+	<meta name="description" content="한국어로 정규식을 배우고, 만들고, 테스트하는 도구. 실시간 하이라이트, 해설, 치트시트, 레퍼런스를 제공하며 인터넷 없이도 동작합니다." />
 
 	<!-- mobile -->
 	<meta id="viewport" name="viewport" content="width=device-width, initial-scale=1, user-scalable=0">
@@ -36,27 +31,22 @@
 	<link rel="manifest" href="/assets/icons/site.webmanifest?1">
 	<link rel="mask-icon" href="/assets/icons/safari-pinned-tab.svg?1" color="#70b0e0">
 	<link rel="shortcut icon" href="/assets/icons/favicon.ico?1">
-	<meta name="apple-mobile-web-app-title" content="RegExr">
-	<meta name="application-name" content="RegExr">
+	<meta name="apple-mobile-web-app-title" content="규식이">
+	<meta name="application-name" content="규식이">
 	<meta name="msapplication-TileColor" content="#70b0e0">
 	<meta name="msapplication-config" content="/assets/icons/browserconfig.xml">
 	<meta name="theme-color" content="#70b0e0">
 
 	<!-- social -->
-	<meta property="og:image" content="https://regexr.com/assets/card.png"/>
-	<meta property="og:image:width" content="1200"/>
-	<meta property="og:image:height" content="630"/>
-    <meta property="og:title" content="RegExr: Learn, Build, & Test RegEx"/>
-    <meta property="og:description" content="RegExr is an online tool to learn, build, & test Regular Expressions (RegEx / RegExp)."/>
-    <meta property="og:url" content="https://regexr.com/"/>
-    <meta property="og:site_name" content="RegExr"/>
+	<meta property="og:title" content="규식이: 정규식 배우기, 만들기, 테스트"/>
+	<meta property="og:description" content="한국어로 정규식을 배우고, 만들고, 테스트하는 도구입니다."/>
+	<meta property="og:url" content="https://gyusik.sinsan.kr/"/>
+	<meta property="og:site_name" content="규식이"/>
 
-	<meta name="twitter:card" content="summary_large_image"/>
-	<meta name="twitter:site:id" content="@gskinner"/>
-	<meta name="twitter:title" content="RegExr: Learn, Build, & Test RegEx"/>
-	<meta name="twitter:description" content="RegExr is an online tool to learn, build, & test Regular Expressions (RegEx / RegExp)."/>
-	<meta name="twitter:image" content="https://regexr.com/assets/card.png"/>
-	<meta name="twitter:url" content="https://regexr.com/" />
+	<meta name="twitter:card" content="summary"/>
+	<meta name="twitter:title" content="규식이: 정규식 배우기, 만들기, 테스트"/>
+	<meta name="twitter:description" content="한국어로 정규식을 배우고, 만들고, 테스트하는 도구입니다."/>
+	<meta name="twitter:url" content="https://gyusik.sinsan.kr/" />
 </head>
 
 <body>
@@ -65,7 +55,7 @@
 	</div>
 	<div class="container">
 		<header class="header">
-			<svg class="icon logo inline"><use xlink:href="#RegExr"></use></svg>
+			<span class="logo wordmark">규식이</span>
 			<div class="settings">
 				<span class="name">Untitled Pattern</span>
 				<svg class="icon share"><use xlink:href="#share"><title>Pattern Settings</title></use></svg>
@@ -77,8 +67,8 @@
 			</ul>
 			<ul class="etc">
 				<li class="button theme"><svg class="icon moon inline"><use xlink:href="#moon"><title>Dark UI</title></use></svg></li>
-				<li class="by">by <a href="http://gskinner.com">gskinner</a></li>
-				<li class="github"><a href="http://github.com/gskinner/regexr/">GitHub</a></li>
+				<li class="by"><a href="https://github.com/gskinner/regexr" target="_blank" rel="noopener">RegExr 기반</a></li>
+				<li class="github"><a href="https://github.com/sinsan-develop/regexr" target="_blank" rel="noopener">소스 코드</a></li>
 				<li class="signin"><a>
 					<svg class="icon user inline"><use xlink:href="#user"></use></svg>
 					<span class="label">Sign In</span>
@@ -103,48 +93,17 @@
 					</header>
 					<ul class="list"></ul>
 					<div class="content">
-						RegExr is an online tool to <b>learn</b>, <b>build</b>, &amp; <b>test</b> Regular Expressions (RegEx / RegExp).
+						규식이는 정규식을 <b>배우고</b>, <b>만들고</b>, <b>테스트</b>하는 도구입니다.
 						<hr>
 						<ul>
-							<li>Supports <b>JavaScript</b> &amp; <b>PHP/PCRE</b> RegEx.</li>
-							<li>Results update in <b>real-time</b> as you type.</li>
-							<li><b>Roll over</b> a match or expression for details.</li>
-							<li>Validate patterns with suites of <b>Tests</b>.</li>
-							<li><b>Save</b> &amp; share expressions with others.</li>
-							<li>Use <b>Tools</b> to explore your results.</li>
-							<li>Full <b>RegEx Reference</b> with help &amp; examples.</li>
-							<li><b>Undo</b> &amp; <b>Redo</b> with {{getCtrlKey()}}-Z / Y in editors.</li>
-							<li>Search for &amp; rate <b>Community Patterns</b>.</li>
+							<li>정규식과 텍스트를 고치면 결과가 <b>바로</b> 바뀝니다.</li>
+							<li>일치한 부분이나 정규식에 <b>마우스를 올리면</b> 설명이 나옵니다.</li>
+							<li><b>테스트</b> 모음으로 패턴을 검증할 수 있습니다.</li>
+							<li>아래 <b>도구</b>로 치환, 목록 추출, 그룹 확인, 해설을 볼 수 있습니다.</li>
+							<li><b>레퍼런스</b>와 <b>치트시트</b>에서 문법과 예제를 찾을 수 있습니다.</li>
+							<li>편집기에서 {{getCtrlKey()}}-Z / Y로 <b>되돌리기</b>와 <b>다시 실행</b>을 합니다.</li>
+							<li>인터넷 없이도 동작합니다. 지금은 <b>JavaScript</b> 엔진만 쓸 수 있고, PCRE2는 준비 중입니다.</li>
 						</ul>
-					</div>
-					<div class="hello">
-						<div class="native-js">
-							<a href="#native_link#" class="native-flex">
-								<style>
-									.native-js {
-										background: linear-gradient(-30deg, #native_bg_color#E5, #native_bg_color#E5 45%, #native_bg_color# 45%) #fff;
-									}
-
-									.native-details {
-										color: #native_color# !important;
-									}
-
-									.native-details:hover {
-										color: #native_color_hover# !important;
-									}
-								</style>
-								<div class="native-main">
-									<img class="native-img" src="#native_logo#">
-									<div class="native-details">
-										<span class="native-company">Sponsored by #native_company#</span>
-										<span class="native-desc">#native_desc#</span>
-									</div>
-								</div>
-							</a>
-						</div>
-						<div class="noad">
-							<b>Want to support RegExr?</b> Consider disabling your ad-blocker for this domain. We'll show a non-intrusive, dev-oriented ad in this area.
-						</div>
 					</div>
 				</div>
 
@@ -190,13 +149,15 @@
 					<article>
 					<article class="editor multiline"><div class="pad">
 <textarea>
-RegExr was created by gskinner.com.
+규식이는 RegExr(gskinner.com)를 바탕으로 만든 한국어 정규식 도구입니다.
 
-Edit the Expression & Text to see matches. Roll over matches or the expression for details. PCRE & JavaScript flavors of RegEx are supported. Validate your expression with Tests mode.
+Expression과 Text를 고치면 일치하는 부분이 바로 표시됩니다. 일치한 부분이나 Expression에 마우스를 올리면 설명이 나옵니다. Tests 모드로 패턴을 검증할 수 있습니다.
 
-The side bar includes a Cheatsheet, full Reference, and Help. You can also Save & Share with the Community and view patterns you create or favorite in My Patterns.
+왼쪽 메뉴에는 Cheatsheet, Reference, Help가 있습니다.
 
-Explore results with the Tools below. Replace & List output custom results. Details lists capture groups. Explain describes your expression in plain English.
+아래 Tools에서 Replace와 List로 결과를 가공하고, Details로 캡처 그룹을, Explain으로 정규식 해설을 볼 수 있습니다.
+
+연락처: 010-1234-5678, 010-9876-5432
 </textarea>
 					</div></article>
 					<div class="tests">
@@ -456,14 +417,8 @@ Explore results with the Tools below. Replace & List output custom results. Deta
 		// first param false indicates a local init.
 		// php passes either a pattern object, or null.
 
-		regexr.init(false, {
-			// local test user:
-			userId: 111,
-			authenticated: true,
-			username: "gskinner",
-			author: "grantskinner",
-			type: "temporary"
-		}, {
+		// 규식이 has no account server; start with an anonymous local user.
+		regexr.init(false, {}, {
 			"PCREVersion": "8.38 2015-11-23",
 			"PHPVersion": "7.0.22-0ubuntu0.16.04.1"
 		});

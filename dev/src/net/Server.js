@@ -1,6 +1,7 @@
 /*
 RegExr: Learn, Build, & Test RegEx
 Copyright (C) 2017  gskinner.com, inc.
+Modified for 규식이 (Gyusik) by sinsan-develop, 2026-10-11 (see NOTICE.md).
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -71,6 +72,7 @@ export default class Server {
 
 // account:
 	static login(service) {
+		if (!Server.url) { return; }
 		window.location = Server.url + "?action=account/login&type="+service;
 	}
 
@@ -124,13 +126,18 @@ export default class Server {
 
 // private methods:
 	static _getRequest(action, data={}, postprocess) {
+		if (!Server.url) {
+			// no server configured: fail locally (async, like a real request) instead of going to the network.
+			let p = new ServerPromise(null, postprocess);
+			setTimeout(() => p._error({message: app.reference.getError({id:"offline"})}), 0);
+			return p;
+		}
 		let req = new XMLHttpRequest(), p = new ServerPromise(req, postprocess), params = [];
 		req.open("POST", Server.url);
 		req.setRequestHeader("Content-type", "application/x-www-form-urlencoded", true);
 		req.timeout = 30*1000;
 		data.action = action;
 
-		if (Server.isLocal && Server.useBeta) { data.userId = 111; }
 		for (let n in data) { params.push(n + "=" + encodeURIComponent(data[n])); }
 		if (Server.isLocal) { console.log(data); }
 		req.send(params.join("&"));
@@ -142,6 +149,7 @@ class ServerPromise {
 	constructor(req, postprocess) {
 		this._req = req;
 		this._postprocess = postprocess;
+		if (!req) { return; }
 		req.addEventListener("load", ()=>this._load());
 		req.addEventListener("timeout", (evt)=>this._error("servercomm"));
 		req.addEventListener("error", (evt)=>this._error("servercomm"));
@@ -170,7 +178,7 @@ class ServerPromise {
 	abort() {
 		if (this._complete) { return; }
 		this._complete = true;
-		this._req.abort();
+		this._req && this._req.abort();
 		this._finallyF && this._finallyF();
 		this._loadF = this._errorF = this._finallyF = null; // just to make sure.
 	}
@@ -189,6 +197,8 @@ class ServerPromise {
 	}
 
 	_error(e) {
+		if (this._complete && !this._req) { return; } // aborted before the local failure fired.
+		this._complete = true;
 		this._err = (e.data && e.data.error) || e.message || e.detail || e.type || String(e);
 		this._errorF && this._errorF(this._err);
 		this._finallyF && this._finallyF();
@@ -196,6 +206,6 @@ class ServerPromise {
 }
 
 Server.isLocal = Utils.isLocal;
-Server.useBeta = Server.isLocal || (window.location.hostname === "beta.regexr.com");
-Server.host = "https://" + (Server.useBeta ? "beta." : "") + "regexr.com"
-Server.url =  Server.host + "/server/api.php";
+// 규식이 does not call the regexr.com server. Saving, sharing, community and sign-in stay unavailable
+// until our own server exists; set its API URL here then.
+Server.url = null;

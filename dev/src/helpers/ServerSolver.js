@@ -1,6 +1,7 @@
 /*
 RegExr: Learn, Build, & Test RegEx
 Copyright (C) 2017  gskinner.com, inc.
+Modified for 규식이 (Gyusik) by sinsan-develop, 2026-10-11 (see NOTICE.md).
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -30,14 +31,18 @@ export default class ServerSolver {
 	
 	_solve(o, callback) {
 		this._callback = callback;
+		this._mode = o.mode;
+		// no server: report it as an engine error until PCRE2 runs inside the app.
+		if (!Server.url) { return this._onError("offline"); }
 		this._serverPromise = Server.solve(o).then((o) => this._onLoad(o)).catch((o) => this._onError(o));
 	}
-	
+
 	_onLoad(data) {
 		this._callback(data);
 	}
-	
+
 	_onError(msg) {
-		this._callback({error:{id:msg}});
+		// include the mode: Text ignores results whose mode doesn't match, so errors were never shown.
+		this._callback({error:{id:msg}, mode:this._mode});
 	}
 }
