@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<!--
+	규식이 (Gyusik) - https://github.com/sinsan-develop/regexr
+	Based on RegExr, Copyright (C) 2017 gskinner.com, inc. Licensed under GPL-3.0. See NOTICE.md.
+-->
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>규식이: 정규식 작업대</title>
+<meta name="pcre-worker" content="pcre-worker.js">
+<link rel="stylesheet" href="gyusik.css">
+</head>
+<body>
+<header class="top">
+	<span class="logo">규식이</span>
+	<nav class="modes" aria-label="모드">
+		<button class="mode on" type="button">작업대</button>
+		<button class="mode" type="button" disabled title="준비 중">만들기</button>
+		<button class="mode" type="button" disabled title="준비 중">배우기</button>
+		<button class="mode" type="button" disabled title="준비 중">내 패턴</button>
+	</nav>
+	<span class="spacer"></span>
+	<label class="engine">엔진
+		<select id="engine">
+			<option value="js">JavaScript</option>
+			<option value="pcre">PCRE2</option>
+		</select>
+	</label>
+	<span class="status-chip" id="net" title="이 화면의 모든 기능은 인터넷 없이 동작합니다">오프라인 사용 가능</span>
+</header>
+
+<main class="wb">
+	<section class="left">
+		<div class="pane">
+			<div class="label">패턴</div>
+			<div class="editor" id="patEditor">
+				<pre class="mirror" id="patMirror" aria-hidden="true"></pre>
+				<textarea id="pattern" spellcheck="false" autocomplete="off" autocapitalize="off" rows="1" aria-label="정규식 패턴"></textarea>
+			</div>
+			<div class="flags" id="flags" role="group" aria-label="플래그"></div>
+			<div class="summary" id="summary" aria-live="polite"></div>
+		</div>
+		<div class="pane">
+			<div class="label">선로도 <span class="hint">구조를 그림으로 보여줍니다. 마우스를 올리면 패턴·설명·결과가 함께 강조됩니다.</span></div>
+			<div class="rr" id="rr"></div>
+		</div>
+		<div class="pane">
+			<div class="label">테스트 텍스트 <span class="count" id="count"></span></div>
+			<div class="editor text" id="txtEditor">
+				<pre class="mirror" id="txtMirror" aria-hidden="true"></pre>
+				<textarea id="text" spellcheck="false" aria-label="테스트 텍스트"></textarea>
+			</div>
+			<div class="banner" id="nfd" hidden>
+				<span>자모가 분리된 한글(NFD)이 있습니다. Mac에서 복사한 글자는 이렇게 저장되어 <code>[가-힣]</code> 에 걸리지 않을 수 있습니다.</span>
+				<button type="button" id="nfdFix">일반 한글로 바꾸기</button>
+			</div>
+			<div class="banner err" id="runError" hidden></div>
+		</div>
+	</section>
+	<aside class="side">
+		<div class="tabs" role="tablist">
+			<button class="tab on" role="tab" data-tab="explain" type="button">설명</button>
+			<button class="tab" role="tab" data-tab="diag" type="button">진단 <span class="badge" id="bDiag">0</span></button>
+			<button class="tab" role="tab" data-tab="tips" type="button">추천 <span class="badge" id="bTips">0</span></button>
+		</div>
+		<div class="panel" id="panel" role="tabpanel"></div>
+	</aside>
+</main>
+
+<footer class="statusbar" id="statusbar"></footer>
+<script src="gyusik.js"></script>
+</body>
+</html>
