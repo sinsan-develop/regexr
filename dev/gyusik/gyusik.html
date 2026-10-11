@@ -17,7 +17,7 @@
 	<nav class="modes" aria-label="모드">
 		<button class="mode on" type="button" data-mode="bench">작업대</button>
 		<button class="mode" type="button" data-mode="make">만들기</button>
-		<button class="mode" type="button" disabled title="준비 중">배우기</button>
+		<button class="mode" type="button" data-mode="learn">배우기</button>
 		<button class="mode" type="button" disabled title="준비 중">내 패턴</button>
 	</nav>
 	<span class="spacer"></span>
@@ -111,6 +111,10 @@
 		<div class="label" id="mkCount">후보</div>
 		<div id="mkList"><p class="empty">예시를 넣고 [후보 만들기]를 누르면 후보가 나옵니다.</p></div>
 	</section>
+</main>
+<main class="ln" id="learnView" hidden>
+	<nav class="pane lnnav" id="lnNav" aria-label="강의 목록"></nav>
+	<article class="pane lnbody" id="lnBody"></article>
 </main>
 <main class="st" id="settingsView" hidden>
 	<section class="pane">

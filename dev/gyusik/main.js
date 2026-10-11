@@ -13,6 +13,7 @@ import {diagnose, sortDiagnostics} from "./diagnose.js";
 import JsSolver from "./JsSolver.js";
 import {generate} from "./generate.js";
 import {initAi} from "./aiui.js";
+import {initLearn} from "./learn.js";
 import PcreSolver from "../src/helpers/PcreSolver.js";
 
 const $ = (id) => document.getElementById(id);
@@ -42,7 +43,7 @@ const SAMPLE = {
 
 let state = load();
 let solvers = {js: new JsSolver(), pcre: null};
-let ai = null;
+let ai = null, learn = null;
 let model = null, rows = [], diags = [], result = null, testRes = null, hot = null, tab = "explain", runSeq = 0, timer = 0;
 
 function load() {
@@ -357,6 +358,9 @@ function setMode(m) {
 	document.querySelector(".wb").hidden = m !== "bench";
 	$("makeView").hidden = m !== "make";
 	$("settingsView").hidden = m !== "settings";
+	$("learnView").hidden = m !== "learn";
+	$("statusbar").hidden = m !== "bench"; // the status bar describes the workbench run
+	if (m === "learn" && learn) { learn.show(); }
 	document.querySelectorAll(".mode[data-mode]").forEach((b) => b.classList.toggle("on", b.dataset.mode === m));
 	if (m === "make") { fillMake(); if (ai) { ai.refresh(); } }
 }
@@ -435,6 +439,22 @@ ai = initAi({
 
 $("mkPos").addEventListener("input", () => ai && ai.refresh());
 $("mkNeg").addEventListener("input", () => ai && ai.refresh());
+
+learn = initLearn({
+	$, esc,
+	openBench: () => setMode("bench"),
+	openInBench: (pattern, cases) => {
+		state.pattern = pattern;
+		state.flags = "";
+		state.tests = cases.map((c, k) => ({id: k + 1, text: c.text, expect: c.expect ? "match" : "nomatch"}));
+		$("pattern").value = pattern;
+		save();
+		paintTests();
+		setMode("bench");
+		showView("tests");
+		render();
+	}
+});
 
 // ---------- start ----------
 
